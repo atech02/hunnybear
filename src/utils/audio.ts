@@ -29,26 +29,26 @@ class SoundEngine {
     return this.isMuted;
   }
 
-  // 1. Tickle Giggle Reaction (Playful rapid bubble oscillations)
+  // 1. Tickle Giggle Reaction (Joyful bubbly laughter)
   public playTickle() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     const now = ctx.currentTime;
 
-    const notes = [523.25, 659.25, 783.99, 1046.5, 880, 1046.5];
+    const notes = [587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 880.0, 1046.5];
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc.type = 'triangle';
-      const start = now + idx * 0.08;
-      const end = start + 0.12;
+      const start = now + idx * 0.07;
+      const end = start + 0.11;
 
       osc.frequency.setValueAtTime(freq, start);
       osc.frequency.exponentialRampToValueAtTime(freq * 1.25, end);
 
       gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.linearRampToValueAtTime(0.16, start + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.001, end);
 
       osc.connect(gain);
@@ -59,8 +59,8 @@ class SoundEngine {
     });
   }
 
-  // 2. Surprised Boop / Pop Reaction
-  public playSurprise() {
+  // 2. Nose Boop / Soft Sneeze Tickle
+  public playBoop() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     const now = ctx.currentTime;
@@ -70,25 +70,112 @@ class SoundEngine {
 
     osc.type = 'sine';
     osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+    osc.frequency.exponentialRampToValueAtTime(920, now + 0.12);
 
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    gain.gain.setValueAtTime(0.24, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.3);
+    osc.stop(now + 0.26);
   }
 
-  // 3. Friendly Waving Chime
+  // Backward-compatible aliases
+  public playSurprise() {
+    this.playBoop();
+  }
+
+  public playHoneyCelebration() {
+    this.playCelebrate();
+  }
+
+  // 3. Gentle Cheek Touch Sparkle
+  public playCheekGentle() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    const now = ctx.currentTime;
+
+    // Sweet glockenspiel sparkle (C6, E6, G6)
+    const sparkleNotes = [1046.5, 1318.51, 1567.98];
+    sparkleNotes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      const start = now + i * 0.08;
+      const end = start + 0.4;
+
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.15, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, end);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(start);
+      osc.stop(end);
+    });
+  }
+
+  // 4. Ear Sensitive Swish
+  public playEarSensitive() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.linearRampToValueAtTime(330, now + 0.25);
+
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.32);
+  }
+
+  // 5. Mouth Space Caution Sound
+  public playMouthSpace() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    const now = ctx.currentTime;
+
+    // Soft two-tone gentle prompt
+    [392.0, 329.63].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      const start = now + i * 0.12;
+      const end = start + 0.22;
+
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.16, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, end);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(start);
+      osc.stop(end);
+    });
+  }
+
+  // 6. Friendly Wave Chime
   public playWave() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     const now = ctx.currentTime;
 
-    // Major 7th arpeggio (C5 - E5 - G5 - B5)
     const chords = [523.25, 659.25, 783.99, 987.77];
     chords.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -112,14 +199,13 @@ class SoundEngine {
     });
   }
 
-  // 4. Playful Foot Tap Reaction
+  // 7. Playful Foot Tap (rhythmic percussion tap)
   public playFootTap() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     const now = ctx.currentTime;
 
-    // 3 quick rhythmic wood taps with cute bell finish
-    [0, 0.12, 0.24].forEach((delay, idx) => {
+    [0, 0.11, 0.22].forEach((delay, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -131,7 +217,7 @@ class SoundEngine {
       const end = start + (isFinal ? 0.3 : 0.08);
 
       osc.frequency.setValueAtTime(freq, start);
-      gain.gain.setValueAtTime(0.22, start);
+      gain.gain.setValueAtTime(0.2, start);
       gain.gain.exponentialRampToValueAtTime(0.001, end);
 
       osc.connect(gain);
@@ -142,8 +228,33 @@ class SoundEngine {
     });
   }
 
-  // 5. Honey Treat / Celebration chime
-  public playHoneyCelebration() {
+  // 8. Calm Breath In & Out
+  public playCalmBreath() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(261.63, now); // C4
+    osc.frequency.exponentialRampToValueAtTime(329.63, now + 1.2); // E4
+    osc.frequency.exponentialRampToValueAtTime(261.63, now + 2.5); // C4
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.12, now + 1.2);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.6);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 2.7);
+  }
+
+  // 9. Celebration Fanfare
+  public playCelebrate() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     const now = ctx.currentTime;
@@ -159,7 +270,7 @@ class SoundEngine {
 
       osc.frequency.setValueAtTime(freq, start);
 
-      gain.gain.setValueAtTime(0.2, start);
+      gain.gain.setValueAtTime(0.18, start);
       gain.gain.exponentialRampToValueAtTime(0.001, end);
 
       osc.connect(gain);
@@ -170,7 +281,7 @@ class SoundEngine {
     });
   }
 
-  // 6. Gentle Music-Box Background Melody
+  // 10. Background Music Lullaby
   public toggleBGM(forceState?: boolean): boolean {
     const target = forceState !== undefined ? forceState : !this.isBgmPlaying;
     if (target) {
@@ -190,20 +301,19 @@ class SoundEngine {
     const ctx = this.initContext();
     this.isBgmPlaying = true;
 
-    // Peaceful, sweet music-box notes sequence
     const melody = [
-      { f: 523.25, d: 0.3 }, // C5
-      { f: 659.25, d: 0.3 }, // E5
-      { f: 783.99, d: 0.3 }, // G5
-      { f: 659.25, d: 0.3 }, // E5
-      { f: 880.00, d: 0.4 }, // A5
-      { f: 783.99, d: 0.4 }, // G5
-      { f: 659.25, d: 0.4 }, // E5
-      { f: 587.33, d: 0.5 }, // D5
-      { f: 523.25, d: 0.4 }, // C5
-      { f: 659.25, d: 0.4 }, // E5
-      { f: 587.33, d: 0.4 }, // D5
-      { f: 523.25, d: 0.8 }, // C5
+      { f: 523.25, d: 0.3 },
+      { f: 659.25, d: 0.3 },
+      { f: 783.99, d: 0.3 },
+      { f: 659.25, d: 0.3 },
+      { f: 880.00, d: 0.4 },
+      { f: 783.99, d: 0.4 },
+      { f: 659.25, d: 0.4 },
+      { f: 587.33, d: 0.5 },
+      { f: 523.25, d: 0.4 },
+      { f: 659.25, d: 0.4 },
+      { f: 587.33, d: 0.4 },
+      { f: 523.25, d: 0.8 },
     ];
 
     let noteIdx = 0;
@@ -219,9 +329,8 @@ class SoundEngine {
       const now = ctx.currentTime;
       osc.frequency.setValueAtTime(note.f, now);
 
-      // Soft music box envelope
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.045, now + 0.02);
+      gain.gain.linearRampToValueAtTime(0.035, now + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.5);
 
       osc.connect(gain);
