@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "hunnybear-game",
     "public": "dist",
     "ignore": [
       "firebase.json",
