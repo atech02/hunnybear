@@ -25,10 +25,7 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Dependencies
+      - name: Install Project Dependencies
         run: |
           npm ci || npm install
           npm install -D @capacitor/cli @capacitor/core @capacitor/android
