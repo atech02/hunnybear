@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Download, Sparkles, Smile, RefreshCw } from 'lucide-react';
+import { Download, Sparkles, Smile, RefreshCw, Eye } from 'lucide-react';
+import { InteractiveHunnyBear } from './components/InteractiveHunnyBear';
 import { HunnyBear3D } from './components/HunnyBear3D';
 import { HappinessMeter } from './components/HappinessMeter';
 import { EmotionCheckIn } from './components/EmotionCheckIn';
@@ -20,7 +21,10 @@ export const App: React.FC = () => {
   const [score, setScore] = useState<number>(50);
   const [scoreChangeDelta, setScoreChangeDelta] = useState<number | null>(null);
 
-  // 3D Animation and character states
+  // Character view mode: 'storybook' (User's authentic Whimsical Bear image) | '3d'
+  const [viewMode, setViewMode] = useState<'storybook' | '3d'>('storybook');
+
+  // Animation and character states
   const [animationState, setAnimationState] = useState<AnimationState>('idle');
   const [mouthShape, setMouthShape] = useState<MouthShape>('closed');
   
@@ -71,7 +75,7 @@ export const App: React.FC = () => {
     setDeferredPrompt(null);
   };
 
-  // Main interaction handler for 3D body parts
+  // Main interaction handler for body parts
   const handleTapRegion = (region: BodyRegion) => {
     if (isCooldownRef.current) return;
     isCooldownRef.current = true;
@@ -101,46 +105,43 @@ export const App: React.FC = () => {
       setScoreChangeDelta(feedback.scoreChange);
     }
 
-    // 2. Play matching child-friendly synthesized sound effect
-    switch (feedback.soundType) {
-      case 'tummy-love':
-        soundEngine.playTummyLove();
-        break;
-      case 'giggle':
-        soundEngine.playTickle();
-        break;
-      case 'boop':
-        soundEngine.playBoop();
-        break;
-      case 'sweet':
-        soundEngine.playCheekGentle();
-        break;
-      case 'ear-surprise':
-        soundEngine.playEarSensitive();
-        break;
-      case 'eye-gentle':
-        soundEngine.playEarSensitive();
-        break;
-      case 'surprise':
-        soundEngine.playMouthSpace();
-        break;
-      case 'wave':
-        soundEngine.playWave();
-        break;
-      case 'foot-tap':
-        soundEngine.playFootTap();
-        break;
-      case 'head-tilt':
-        soundEngine.playHeadTilt();
-        break;
-      default:
-        break;
+    // 2. Play sound effects
+    // For stomach: explicitly use a giggle sound for tickling
+    if (region === 'stomach' || region === 'tummy') {
+      soundEngine.playTickle();
+    } else {
+      switch (feedback.soundType) {
+        case 'boop':
+          soundEngine.playBoop();
+          break;
+        case 'sweet':
+          soundEngine.playCheekGentle();
+          break;
+        case 'ear-surprise':
+        case 'eye-gentle':
+          soundEngine.playEarSensitive();
+          break;
+        case 'surprise':
+          soundEngine.playMouthSpace();
+          break;
+        case 'wave':
+          soundEngine.playWave();
+          break;
+        case 'foot-tap':
+          soundEngine.playFootTap();
+          break;
+        case 'head-tilt':
+          soundEngine.playHeadTilt();
+          break;
+        default:
+          break;
+      }
     }
 
-    // 3. Trigger 3D coordinated animation
+    // 3. Trigger coordinated animation state
     setAnimationState(feedback.animationState);
 
-    // 4. Trigger spoken voice (Audio only — NO SUBTITLES ON SCREEN per requirements)
+    // 4. Trigger spoken little boy voice (Audio only — NO SUBTITLES ON SCREEN per requirements)
     setIsSpeaking(true);
     voiceManager.speak(
       feedback.spokenDialogue,
@@ -198,7 +199,7 @@ export const App: React.FC = () => {
     );
   };
 
-  // Start "Let's Make Hunny Bear Smile!" Challenge
+  // Start "Make Bear Smile!" Challenge
   const handleStartKindnessChallenge = () => {
     soundEngine.playWave();
     setAnimationState('wave-left');
@@ -240,6 +241,19 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            {/* View Mode Switcher: Storybook Image vs 3D */}
+            <button
+              onClick={() => setViewMode((prev) => (prev === 'storybook' ? '3d' : 'storybook'))}
+              aria-label="Toggle Character View Mode"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-amber-100 hover:bg-amber-200 text-[#593A2A] rounded-full border border-amber-300 transition-all cursor-pointer"
+              title={viewMode === 'storybook' ? 'Switch to 3D View' : 'Switch to Storybook Art View'}
+            >
+              <Eye className="w-3.5 h-3.5 text-[#A96B3C]" />
+              <span className="hidden sm:inline">
+                {viewMode === 'storybook' ? 'Storybook Art' : '3D Mode'}
+              </span>
+            </button>
+
             {/* PWA Install Button */}
             {deferredPrompt && !isInstalled && (
               <button
@@ -281,14 +295,23 @@ export const App: React.FC = () => {
         </p>
       </header>
 
-      {/* 2. CENTER AREA: FULL ANIMATED 3D CARTOON BEAR (Clean visual focus, zero subtitles) */}
+      {/* 2. CENTER AREA: FULL ANIMATED CHARACTER (Zero subtitles, clean child-friendly presentation) */}
       <main className="w-full flex-1 flex flex-col items-center justify-center relative my-0.5 overflow-hidden">
-        <HunnyBear3D
-          animationState={animationState}
-          mouthShape={mouthShape}
-          isSpeaking={isSpeaking}
-          onTapRegion={handleTapRegion}
-        />
+        {viewMode === 'storybook' ? (
+          <InteractiveHunnyBear
+            animationState={animationState}
+            mouthShape={mouthShape}
+            isSpeaking={isSpeaking}
+            onTapRegion={handleTapRegion}
+          />
+        ) : (
+          <HunnyBear3D
+            animationState={animationState}
+            mouthShape={mouthShape}
+            isSpeaking={isSpeaking}
+            onTapRegion={handleTapRegion}
+          />
+        )}
       </main>
 
       {/* 3. BOTTOM AREA: INSTRUCTION & EMOTIONAL ACTIVITIES */}

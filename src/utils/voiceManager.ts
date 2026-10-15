@@ -24,22 +24,31 @@ class VoiceManager {
     const voices = this.synth.getVoices();
     if (!voices.length) return;
 
-    // Prefer cheerful, clear, friendly English voices
+    // Search for young, playful, boy-like or childlike English voices
     const preferredVoices = [
-      'Google US English',
-      'Samantha',
-      'Victoria',
-      'Karen',
-      'Zira',
-      'Jenny',
-      'Microsoft Zira',
+      'child',
+      'kid',
+      'boy',
+      'junior',
+      'oliver',
+      'george',
+      'daniel',
+      'david',
+      'google us english',
+      'google uk english male',
+      'en-us-x-sfg#male',
+      'en-gb',
+      'samantha',
+      'victoria',
+      'karen',
       'en-US',
-      'en-GB',
     ];
 
-    for (const name of preferredVoices) {
+    for (const pattern of preferredVoices) {
       const match = voices.find(
-        (v) => v.name.toLowerCase().includes(name.toLowerCase()) || v.lang.startsWith(name)
+        (v) =>
+          v.name.toLowerCase().includes(pattern.toLowerCase()) ||
+          v.lang.toLowerCase().startsWith(pattern.toLowerCase())
       );
       if (match) {
         this.selectedVoice = match;
@@ -67,6 +76,39 @@ class VoiceManager {
     return this.lastSpokenText;
   }
 
+  /**
+   * Calculate Little Boy voice acoustic parameters based on emotional tone:
+   * - Surprised / bouncy phrases: higher, playful intonation (pitch ~1.58)
+   * - Affectionate phrases ("I love you!"): warm, gentle, sweet pitch (~1.42)
+   * - Cheerful greetings: energetic boyish pitch (~1.48)
+   */
+  private getBoyVoiceParams(text: string): { pitch: number; rate: number } {
+    const lower = text.toLowerCase();
+
+    // Surprised phrases: higher, playful intonation
+    if (lower.includes('ear') || lower.includes('surprise') || lower.includes('boop')) {
+      return { pitch: 1.58, rate: 1.05 };
+    }
+
+    // Affectionate phrases: warm, tender, sweet
+    if (lower.includes('love') || lower.includes('sweet')) {
+      return { pitch: 1.42, rate: 0.94 };
+    }
+
+    // Playful rhythmic foot tap
+    if (lower.includes('tap')) {
+      return { pitch: 1.48, rate: 1.04 };
+    }
+
+    // Caution / gentle touch
+    if (lower.includes('gentle') || lower.includes('oops')) {
+      return { pitch: 1.44, rate: 0.96 };
+    }
+
+    // Default cheerful friendly boy voice
+    return { pitch: 1.50, rate: 1.0 };
+  }
+
   public speak(
     text: string,
     onMouthShape?: (shape: MouthShape) => void,
@@ -76,12 +118,12 @@ class VoiceManager {
     this.onMouthChangeCallback = onMouthShape || null;
 
     if (this.isMuted || !this.synth) {
-      // Simulate brief mouth movement even if muted or no speech API
-      this.simulateMouthMovement(text.length * 50, onMouthShape, onComplete);
+      // Gracefully simulate brief mouth visemes if muted or speech API unavailable
+      this.simulateMouthMovement(text.length * 55, onMouthShape, onComplete);
       return;
     }
 
-    // Cancel any ongoing utterance to avoid overlapping voices
+    // Cancel any ongoing speech to prevent overlap
     this.stop();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -89,9 +131,10 @@ class VoiceManager {
       utterance.voice = this.selectedVoice;
     }
 
-    // Child-friendly warm acoustic parameters
-    utterance.rate = 0.92; // slightly relaxed pace for comprehension
-    utterance.pitch = 1.18; // warm, gentle, friendly pitch
+    // Apply sweet, playful little boy voice acoustic profile
+    const { pitch, rate } = this.getBoyVoiceParams(text);
+    utterance.pitch = pitch;
+    utterance.rate = rate;
     utterance.volume = 1.0;
 
     // Synchronize mouth animation during speech
@@ -129,7 +172,7 @@ class VoiceManager {
         this.onMouthChangeCallback(shapes[idx % shapes.length]);
       }
       idx++;
-    }, 140);
+    }, 130);
   }
 
   private simulateMouthMovement(
@@ -138,13 +181,13 @@ class VoiceManager {
     onComplete?: () => void
   ) {
     if (!onMouthShape) {
-      if (onComplete) setTimeout(onComplete, Math.min(durationMs, 1200));
+      if (onComplete) setTimeout(onComplete, Math.min(durationMs, 1000));
       return;
     }
 
     const shapes: MouthShape[] = ['slightly-open', 'wide-open', 'slightly-open', 'smile'];
     let count = 0;
-    const maxSteps = Math.min(Math.floor(durationMs / 140), 8);
+    const maxSteps = Math.min(Math.floor(durationMs / 130), 8);
 
     const interval = setInterval(() => {
       onMouthShape(shapes[count % shapes.length]);
@@ -154,7 +197,7 @@ class VoiceManager {
         onMouthShape('closed');
         if (onComplete) onComplete();
       }
-    }, 140);
+    }, 130);
   }
 
   private cleanUpSpeech() {

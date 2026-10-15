@@ -133,3 +133,146 @@
 .animate-float-particle {
   animation: float-up 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
+
+/* Layered Sprite Animations for Interactive Hunny Bear */
+
+/* Gentle breathing expansion of background & body */
+@keyframes gentle-breathe {
+  0%, 100% {
+    transform: scale(1.0);
+  }
+  50% {
+    transform: scale(1.012);
+  }
+}
+
+.animate-gentle-breathe {
+  animation: gentle-breathe 4s ease-in-out infinite;
+  transform-origin: 50% 65%;
+}
+
+/* Head breathing bob */
+@keyframes head-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-head-bob {
+  animation: head-bob 3.6s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+/* Rapid nose wiggling */
+@keyframes nose-wiggle-fast {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px) rotate(-4deg); }
+  40% { transform: translateX(5px) rotate(4deg); }
+  60% { transform: translateX(-4px) rotate(-3deg); }
+  80% { transform: translateX(4px) rotate(3deg); }
+}
+
+.animate-wiggle-fast {
+  animation: nose-wiggle-fast 0.45s ease-in-out 3;
+}
+
+/* Viseme mouth movement synchronized with speech */
+@keyframes mouth-speak {
+  0%, 100% { transform: scaleY(1.0) scaleX(1.0); }
+  35% { transform: scaleY(1.35) scaleX(0.92); }
+  70% { transform: scaleY(0.85) scaleX(1.06); }
+}
+
+.animate-mouth-speak {
+  animation: mouth-speak 0.22s ease-in-out infinite;
+}
+
+/* Tummy idle breathing */
+@keyframes tummy-idle {
+  0%, 100% { transform: scale(1.0); }
+  50% { transform: scale(1.025, 1.02); }
+}
+
+.animate-tummy-idle {
+  animation: tummy-idle 3.8s ease-in-out infinite;
+}
+
+/* Tummy love pulse & bounce */
+@keyframes tummy-hug {
+  0% { transform: scale(1.0); }
+  30% { transform: scale(1.12, 1.08); }
+  60% { transform: scale(0.98, 1.04); }
+  85% { transform: scale(1.06, 1.03); }
+  100% { transform: scale(1.0); }
+}
+
+.animate-tummy-hug {
+  animation: tummy-hug 0.8s ease-in-out infinite;
+}
+
+/* Paw waving keyframe animation (arm & paw moving together) */
+@keyframes paw-wave {
+  0% { transform: translateY(0) rotate(0deg); }
+  15% { transform: translateY(-24px) rotate(-28deg) scale(1.08); }
+  35% { transform: translateY(-24px) rotate(-10deg) scale(1.08); }
+  55% { transform: translateY(-24px) rotate(-28deg) scale(1.08); }
+  75% { transform: translateY(-24px) rotate(-10deg) scale(1.08); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.animate-paw-wave {
+  animation: paw-wave 1.1s ease-in-out forwards;
+}
+
+@keyframes paw-wave-right {
+  0% { transform: translateY(0) rotate(0deg); }
+  15% { transform: translateY(-24px) rotate(28deg) scale(1.08); }
+  35% { transform: translateY(-24px) rotate(10deg) scale(1.08); }
+  55% { transform: translateY(-24px) rotate(28deg) scale(1.08); }
+  75% { transform: translateY(-24px) rotate(10deg) scale(1.08); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.animate-paw-wave-right {
+  animation: paw-wave-right 1.1s ease-in-out forwards;
+}
+
+/* Foot tapping rhythmic stamping */
+@keyframes foot-stamp {
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-18px) rotate(-8deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-14px) rotate(-6deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.animate-foot-stamp {
+  animation: foot-stamp 0.65s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes foot-stamp-right {
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-18px) rotate(8deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-14px) rotate(6deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.animate-foot-stamp-right {
+  animation: foot-stamp-right 0.65s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+/* Floating feedback particle */
+@keyframes float-fade {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  25% { opacity: 1; transform: translate(-50%, -70%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -110%) scale(1.3); }
+}
+
+.animate-float-fade {
+  animation: float-fade 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

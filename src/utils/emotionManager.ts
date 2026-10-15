@@ -29,7 +29,7 @@ export const INTERACTION_MAP: Record<BodyRegion, InteractionFeedback> = {
     region: 'nose',
     emotion: 'happy',
     scoreChange: 2,
-    spokenDialogue: 'Boop! Hee-hee!',
+    spokenDialogue: 'Boop!',
     soundType: 'boop',
     animationState: 'nose-boop',
   },
@@ -127,13 +127,12 @@ export const getInteractionFeedback = (region: BodyRegion): InteractionFeedback 
   const base = INTERACTION_MAP[region];
   if (!base) return INTERACTION_MAP['head'];
 
-  // For stomach/tummy: occasionally add cute giggle variation while keeping "I love you!"
   if (region === 'stomach' || region === 'tummy') {
-    const isGiggle = Math.random() < 0.28;
     return {
       ...base,
-      spokenDialogue: isGiggle ? 'Hee-hee! I love you!' : 'I love you!',
-      animationState: isGiggle ? 'tummy-giggle' : 'tummy-love',
+      spokenDialogue: 'I love you!',
+      soundType: 'giggle',
+      animationState: 'tummy-love',
     };
   }
 
