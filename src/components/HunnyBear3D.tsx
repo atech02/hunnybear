@@ -872,8 +872,8 @@ export const HunnyBear3D: React.FC<HunnyBear3DProps> = ({
   return (
     <div
       ref={mountRef}
-      className="w-full h-full max-w-md max-h-[520px] flex items-center justify-center relative touch-none select-none"
-      style={{ minHeight: '360px', aspectRatio: '4/5' }}
+      className="w-full h-full relative touch-none select-none flex items-center justify-center"
+      style={{ width: '100%', height: '100%' }}
     />
   );
 };

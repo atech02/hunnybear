@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Download, Sparkles, Smile, RefreshCw, Eye } from 'lucide-react';
-import { InteractiveHunnyBear } from './components/InteractiveHunnyBear';
+import { Download, Sparkles, Smile, RefreshCw } from 'lucide-react';
 import { HunnyBear3D } from './components/HunnyBear3D';
 import { HappinessMeter } from './components/HappinessMeter';
 import { EmotionCheckIn } from './components/EmotionCheckIn';
@@ -20,9 +19,6 @@ export const App: React.FC = () => {
   // Score starts at 50 per specification
   const [score, setScore] = useState<number>(50);
   const [scoreChangeDelta, setScoreChangeDelta] = useState<number | null>(null);
-
-  // Character view mode: 'storybook' (User's authentic Whimsical Bear image) | '3d'
-  const [viewMode, setViewMode] = useState<'storybook' | '3d'>('storybook');
 
   // Animation and character states
   const [animationState, setAnimationState] = useState<AnimationState>('idle');
@@ -241,19 +237,6 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            {/* View Mode Switcher: Storybook Image vs 3D */}
-            <button
-              onClick={() => setViewMode((prev) => (prev === 'storybook' ? '3d' : 'storybook'))}
-              aria-label="Toggle Character View Mode"
-              className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-amber-100 hover:bg-amber-200 text-[#593A2A] rounded-full border border-amber-300 transition-all cursor-pointer"
-              title={viewMode === 'storybook' ? 'Switch to 3D View' : 'Switch to Storybook Art View'}
-            >
-              <Eye className="w-3.5 h-3.5 text-[#A96B3C]" />
-              <span className="hidden sm:inline">
-                {viewMode === 'storybook' ? 'Storybook Art' : '3D Mode'}
-              </span>
-            </button>
-
             {/* PWA Install Button */}
             {deferredPrompt && !isInstalled && (
               <button
@@ -295,23 +278,31 @@ export const App: React.FC = () => {
         </p>
       </header>
 
-      {/* 2. CENTER AREA: FULL ANIMATED CHARACTER (Zero subtitles, clean child-friendly presentation) */}
+      {/* 2. CENTER AREA: LIVE ANIMATED 3D BEAR IN FRONT OF SCENERY (No static duplicate bear) */}
       <main className="w-full flex-1 flex flex-col items-center justify-center relative my-0.5 overflow-hidden">
-        {viewMode === 'storybook' ? (
-          <InteractiveHunnyBear
-            animationState={animationState}
-            mouthShape={mouthShape}
-            isSpeaking={isSpeaking}
-            onTapRegion={handleTapRegion}
+        <div
+          className="relative w-full max-w-[480px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-200/90 bg-[#FFF8EA] select-none touch-manipulation mx-auto flex items-center justify-center"
+          style={{
+            boxShadow: '0 18px 40px -10px rgba(89, 58, 42, 0.3), 0 0 24px rgba(233, 180, 76, 0.25)',
+          }}
+        >
+          {/* Fairytale Background Scenery (Winding rainbow path, waterfall, stream, trees, mushrooms - NO BEAR) */}
+          <img
+            src="/image/scenery_background.png"
+            alt="Fairytale Scenery by the Rainbow Stream"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
           />
-        ) : (
-          <HunnyBear3D
-            animationState={animationState}
-            mouthShape={mouthShape}
-            isSpeaking={isSpeaking}
-            onTapRegion={handleTapRegion}
-          />
-        )}
+
+          {/* Sole Visible Character: Live Animated 3D Hunny Bear */}
+          <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center">
+            <HunnyBear3D
+              animationState={animationState}
+              mouthShape={mouthShape}
+              isSpeaking={isSpeaking}
+              onTapRegion={handleTapRegion}
+            />
+          </div>
+        </div>
       </main>
 
       {/* 3. BOTTOM AREA: INSTRUCTION & EMOTIONAL ACTIVITIES */}
