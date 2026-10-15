@@ -47,16 +47,16 @@ export const HappinessMeter: React.FC<HappinessMeterProps> = ({
   const level = getLevelLabel(score);
 
   return (
-    <div className="w-full max-w-xl bg-white/90 backdrop-blur-xs border-2 border-amber-200/80 rounded-2xl px-3 py-2 shadow-sm flex flex-col gap-1.5 font-sans">
+    <div className="w-full max-w-lg bg-white/80 backdrop-blur-md border border-amber-100/60 rounded-2xl px-3.5 py-1.5 shadow-xs flex flex-col gap-1 font-sans">
       <div className="flex items-center justify-between">
         
         {/* Heart + Happiness Label */}
         <div className="flex items-center gap-1.5 relative">
-          <Heart className="w-5 h-5 fill-rose-500 text-rose-500 animate-pulse" />
-          <span className="font-extrabold text-sm sm:text-base text-amber-950 font-heading">
+          <Heart className="w-4 h-4 fill-rose-500 text-rose-500 animate-pulse" />
+          <span className="font-extrabold text-xs sm:text-sm text-amber-950 font-heading">
             Happiness:
           </span>
-          <span className="font-black text-sm sm:text-base text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full">
+          <span className="font-black text-xs sm:text-sm text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-full">
             {score}%
           </span>
 
@@ -117,9 +117,9 @@ export const HappinessMeter: React.FC<HappinessMeterProps> = ({
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full h-3 bg-amber-100/90 rounded-full p-0.5 overflow-hidden shadow-inner border border-amber-200/50">
+      <div className="w-full h-2 sm:h-2.5 bg-amber-100/70 rounded-full overflow-hidden shadow-inner border border-amber-200/40">
         <div
-          className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-amber-400 via-amber-500 to-rose-400 shadow-xs"
+          className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-amber-400 via-amber-500 to-rose-400"
           style={{ width: `${score}%` }}
         />
       </div>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import type { BodyRegion, AnimationState, MouthShape } from '../types/game';
 
 interface InteractiveHunnyBearProps {
   animationState: AnimationState;
-  mouthShape: MouthShape;
+  mouthShape?: MouthShape;
   isSpeaking: boolean;
   onTapRegion: (region: BodyRegion) => void;
 }
@@ -17,47 +17,14 @@ interface TapParticle {
 
 export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
   animationState,
-  mouthShape,
+  mouthShape: _mouthShape,
   isSpeaking,
   onTapRegion,
 }) => {
-  const [isBlinking, setIsBlinking] = useState(false);
-  const [activePawWave, setActivePawWave] = useState<'left' | 'right' | null>(null);
-  const [activeFootTap, setActiveFootTap] = useState<'left' | 'right' | null>(null);
   const [particles, setParticles] = useState<TapParticle[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Periodic natural idle blinking (every 3.6s)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (animationState === 'idle') {
-        setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 170);
-      }
-    }, 3600);
-    return () => clearInterval(timer);
-  }, [animationState]);
-
-  // Synchronize limb reaction states with animationState
-  useEffect(() => {
-    if (animationState === 'wave-left') {
-      setActivePawWave('left');
-    } else if (animationState === 'wave-right') {
-      setActivePawWave('right');
-    } else {
-      setActivePawWave(null);
-    }
-
-    if (animationState === 'foot-tap-left') {
-      setActiveFootTap('left');
-    } else if (animationState === 'foot-tap-right') {
-      setActiveFootTap('right');
-    } else {
-      setActiveFootTap(null);
-    }
-  }, [animationState]);
-
-  // Trigger floating visual tap feedback particle (hearts, sparkles, music notes)
+  // Trigger floating visual tap feedback particle (hearts, sparkles, stars, paws)
   const spawnParticle = (clientX: number, clientY: number, symbol: string) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -72,538 +39,385 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
   };
 
   const handleRegionClick = (
-    e: React.MouseEvent | React.TouchEvent,
+    e: React.MouseEvent | React.TouchEvent | React.KeyboardEvent,
     region: BodyRegion,
     symbol: string
   ) => {
     e.stopPropagation();
     let clientX = 0;
     let clientY = 0;
+
     if ('touches' in e && e.touches.length > 0) {
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
     } else if ('clientX' in e) {
       clientX = (e as React.MouseEvent).clientX;
       clientY = (e as React.MouseEvent).clientY;
+    } else if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      clientX = rect.left + rect.width / 2;
+      clientY = rect.top + rect.height / 2;
     }
+
     spawnParticle(clientX, clientY, symbol);
     onTapRegion(region);
   };
 
-  // Determine dynamic animation CSS states
-  const isHeadTilting = animationState === 'head-tilt';
-  const isNoseBooping = animationState === 'nose-boop';
-  const isEarLeftSurprise = animationState === 'ear-surprise-left';
-  const isEarRightSurprise = animationState === 'ear-surprise-right';
-  const isEyeBlinkLeft = animationState === 'eye-blink-left';
-  const isEyeBlinkRight = animationState === 'eye-blink-right';
-  const isCheekSmileLeft = animationState === 'cheek-smile-left';
-  const isCheekSmileRight = animationState === 'cheek-smile-right';
-  const isMouthSurprise = animationState === 'mouth-surprise';
-  const isTummyLove = animationState === 'tummy-love' || animationState === 'tummy-giggle';
+  const handleKeyDown = (e: React.KeyboardEvent, region: BodyRegion, symbol: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRegionClick(e, region, symbol);
+    }
+  };
+
+  // Determine organic animation class applied to the whole character
+  const getBearAnimationClass = (): string => {
+    switch (animationState) {
+      case 'wave-left':
+        return 'animate-bear-wave-left';
+      case 'wave-right':
+        return 'animate-bear-wave-right';
+      case 'foot-tap-left':
+        return 'animate-bear-foot-tap-left';
+      case 'foot-tap-right':
+        return 'animate-bear-foot-tap-right';
+      case 'tummy-love':
+      case 'tummy-giggle':
+        return 'animate-bear-tummy-hug';
+      case 'nose-boop':
+        return 'animate-bear-boop';
+      case 'ear-surprise-left':
+        return 'animate-bear-ear-surprise-left';
+      case 'ear-surprise-right':
+        return 'animate-bear-ear-surprise-right';
+      case 'eye-blink-left':
+      case 'eye-blink-right':
+        return 'animate-bear-eye-blink';
+      case 'cheek-smile-left':
+        return 'animate-bear-cheek-smile-left';
+      case 'cheek-smile-right':
+        return 'animate-bear-cheek-smile-right';
+      case 'mouth-surprise':
+        return 'animate-bear-mouth-surprise';
+      case 'head-tilt':
+        return 'animate-bear-head-tilt';
+      case 'idle':
+      default:
+        return isSpeaking ? 'animate-bear-speaking' : 'animate-bear-idle';
+    }
+  };
+
+  const isCheekBlushing =
+    animationState === 'cheek-smile-left' ||
+    animationState === 'cheek-smile-right' ||
+    animationState === 'tummy-love';
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[480px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-200/90 bg-[#FFF8EA] select-none touch-manipulation mx-auto flex items-center justify-center"
+      className="relative w-full max-w-[480px] aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-transparent select-none touch-manipulation mx-auto flex items-center justify-center transition-all duration-300"
       style={{
-        boxShadow: '0 18px 40px -10px rgba(89, 58, 42, 0.3), 0 0 24px rgba(233, 180, 76, 0.25)',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
-      {/* 1. LAYER 1: BACKGROUND SCENERY (Rainbow path, mushrooms, waterfall, stream - NO BEAR) */}
+      {/* 1. SCENERY BACKGROUND LAYER (Rainbow path, waterfall, stream, trees, mushrooms - NO BEAR) */}
       <img
         src="/image/scenery_background.png"
         alt="Fairytale Scenery by the Rainbow Stream"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none rounded-2xl sm:rounded-3xl"
+        draggable={false}
       />
 
-      {/* 2. LAYER 2: SOLE HUNNY BEAR CHARACTER (Grounded on the rainbow path) */}
+      {/* 2. NATURAL GROUND CONTACT SHADOW (Grounds Hunny Bear onto the rainbow path stones) */}
       <div
-        className={`absolute inset-0 pointer-events-none z-10 transition-transform duration-700 ease-out flex items-center justify-center ${
-          animationState === 'idle' ? 'animate-gentle-breathe' : ''
-        }`}
+        className="absolute pointer-events-none rounded-full"
+        style={{
+          bottom: '12%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '46%',
+          height: '7%',
+          background: 'radial-gradient(ellipse at center, rgba(60, 35, 12, 0.32) 0%, rgba(60, 35, 12, 0) 72%)',
+          filter: 'blur(3px)',
+        }}
+      />
+
+      {/* 3. MAIN CHARACTER WRAPPER (Animated seamlessly as one unified, living character) */}
+      <div
+        className={`relative z-10 w-full h-full flex items-center justify-center pointer-events-none transition-transform duration-500 ease-out ${getBearAnimationClass()}`}
+        style={{
+          transformOrigin: '50% 86%',
+        }}
       >
+        {/* Full, pristine transparent character image */}
         <img
           src="/image/hunnybear_character.png"
           alt="Hunny Bear"
-          className="w-full h-full object-contain pointer-events-none select-none"
+          className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
+          draggable={false}
         />
 
-        {/* 3. LAYERED ANIMATED SPRITES DERIVED FROM JOYFUL CUDDLY TEDDY BEAR */}
-
-        {/* Head Layer (Idle breathing bob, Head tilt, Nose boop recoil, Ear surprise tilt) */}
+        {/* Soft, seamless blush glow on cheeks (blooms gently only on affection/praise) */}
         <div
-          className={`absolute pointer-events-none transition-transform duration-450 ease-out ${
-            isHeadTilting
-              ? 'rotate-8 translate-x-1 -translate-y-1 scale-102'
-              : isNoseBooping
-              ? '-translate-y-4 scale-97'
-              : isEarLeftSurprise
-              ? '-rotate-7 -translate-x-2'
-              : isEarRightSurprise
-              ? 'rotate-7 translate-x-2'
-              : isCheekSmileLeft
-              ? 'rotate-5 -translate-x-1'
-              : isCheekSmileRight
-              ? '-rotate-5 translate-x-1'
-              : animationState === 'idle'
-              ? 'animate-head-bob'
-              : ''
+          className={`absolute pointer-events-none rounded-full bg-rose-400/35 blur-md transition-opacity duration-300 ${
+            isCheekBlushing ? 'opacity-90 scale-125' : 'opacity-0'
           }`}
           style={{
-            left: '27.11%',
-            top: '6.38%',
-            width: '47.85%',
-            height: '43.06%',
-            transformOrigin: '50% 88%',
+            left: '30%',
+            top: '26%',
+            width: '13%',
+            height: '11%',
           }}
-        >
-          <img
-            src="/image/sprites/head.png"
-            alt=""
-            className="w-full h-full object-contain"
-          />
-
-          {/* Wiggling Nose Overlay on Head */}
-          <div
-            className={`absolute transition-transform duration-150 ${
-              isNoseBooping ? 'animate-wiggle-fast scale-110' : ''
-            }`}
-            style={{
-              left: '32.5%',
-              top: '48.1%',
-              width: '21.7%',
-              height: '19.4%',
-            }}
-          >
-            <img
-              src="/image/sprites/nose.png"
-              alt=""
-              className="w-full h-full object-contain"
-            />
-          </div>
-
-          {/* Left Ear Overlay on Head */}
-          <div
-            className={`absolute transition-transform duration-300 ${
-              isEarLeftSurprise ? 'rotate-12 -translate-y-1' : ''
-            }`}
-            style={{
-              left: '0.0%',
-              top: '1.8%',
-              width: '33.3%',
-              height: '37.0%',
-              transformOrigin: '70% 80%',
-            }}
-          >
-            <img
-              src="/image/sprites/left_ear.png"
-              alt=""
-              className="w-full h-full object-contain"
-            />
-          </div>
-
-          {/* Right Ear Overlay on Head */}
-          <div
-            className={`absolute transition-transform duration-300 ${
-              isEarRightSurprise ? '-rotate-12 -translate-y-1' : ''
-            }`}
-            style={{
-              left: '63.3%',
-              top: '20.4%',
-              width: '33.3%',
-              height: '38.9%',
-              transformOrigin: '30% 80%',
-            }}
-          >
-            <img
-              src="/image/sprites/right_ear.png"
-              alt=""
-              className="w-full h-full object-contain"
-            />
-          </div>
-
-          {/* Blinking Eyelid Overlays on Eyes */}
-          {(isBlinking || isEyeBlinkLeft || isEyeBlinkRight || isNoseBooping) && (
-            <>
-              {/* Left Eyelid */}
-              <div
-                className={`absolute bg-[#9D633C] rounded-full transition-all duration-100 ${
-                  isBlinking || isEyeBlinkLeft || isNoseBooping
-                    ? 'h-6 sm:h-7 opacity-95'
-                    : 'h-0 opacity-0'
-                }`}
-                style={{
-                  left: '23.3%',
-                  top: '36.5%',
-                  width: '20.0%',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
-                }}
-              />
-              {/* Right Eyelid */}
-              <div
-                className={`absolute bg-[#9D633C] rounded-full transition-all duration-100 ${
-                  isBlinking || isEyeBlinkRight || isNoseBooping
-                    ? 'h-6 sm:h-7 opacity-95'
-                    : 'h-0 opacity-0'
-                }`}
-                style={{
-                  left: '50.0%',
-                  top: '43.9%',
-                  width: '20.8%',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
-                }}
-              />
-            </>
-          )}
-
-          {/* Rosy Cheek Blush Glow */}
-          <div
-            className={`absolute rounded-full bg-rose-400/40 blur-xs transition-opacity duration-300 pointer-events-none ${
-              isCheekSmileLeft || isTummyLove ? 'opacity-90 scale-125' : 'opacity-0'
-            }`}
-            style={{
-              left: '8.3%',
-              top: '42.6%',
-              width: '25.0%',
-              height: '25.9%',
-            }}
-          />
-          <div
-            className={`absolute rounded-full bg-rose-400/40 blur-xs transition-opacity duration-300 pointer-events-none ${
-              isCheekSmileRight || isTummyLove ? 'opacity-90 scale-125' : 'opacity-0'
-            }`}
-            style={{
-              left: '56.7%',
-              top: '51.8%',
-              width: '25.0%',
-              height: '25.9%',
-            }}
-          />
-
-          {/* Mouth Overlay (Speech viseme modulation / Surprised "O") */}
-          <div
-            className={`absolute transition-transform duration-150 ${
-              isSpeaking
-                ? 'animate-mouth-speak'
-                : isMouthSurprise
-                ? 'scale-y-135 scale-x-75'
-                : mouthShape === 'smile'
-                ? 'scale-105'
-                : ''
-            }`}
-            style={{
-              left: '30.0%',
-              top: '57.4%',
-              width: '26.7%',
-              height: '22.2%',
-              transformOrigin: '50% 30%',
-            }}
-          >
-            <img
-              src="/image/sprites/mouth.png"
-              alt=""
-              className="w-full h-full object-contain"
-            />
-          </div>
-        </div>
-
-        {/* Tummy Layer (Bouncy tummy love reaction) */}
+        />
         <div
-          className={`absolute pointer-events-none transition-transform duration-500 ease-out ${
-            isTummyLove ? 'animate-tummy-hug scale-108' : 'animate-tummy-idle'
+          className={`absolute pointer-events-none rounded-full bg-rose-400/35 blur-md transition-opacity duration-300 ${
+            isCheekBlushing ? 'opacity-90 scale-125' : 'opacity-0'
           }`}
           style={{
-            left: '34.29%',
-            top: '44.66%',
-            width: '27.11%',
-            height: '28.71%',
-            transformOrigin: '50% 60%',
+            left: '56%',
+            top: '30%',
+            width: '13%',
+            height: '11%',
           }}
-        >
-          <img
-            src="/image/sprites/tummy.png"
-            alt=""
-            className="w-full h-full object-contain"
-          />
-        </div>
+        />
 
-        {/* Left Paw / Arm (Waving hand, tummy hug, or face guard) */}
-        <div
-          className={`absolute pointer-events-none transition-all duration-400 ease-out ${
-            activePawWave === 'left'
-              ? 'animate-paw-wave z-20'
-              : isTummyLove
-              ? 'translate-x-3 translate-y-3 rotate-12 scale-105 z-20'
-              : isEyeBlinkLeft || isMouthSurprise
-              ? '-translate-y-8 translate-x-2 -rotate-15 z-20'
-              : 'animate-paw-rest'
-          }`}
+        {/* 4. 100% INVISIBLE SHAPE-AWARE SVG TOUCH HITBOXES */}
+        {/* Strictly zero rectangular borders, zero background highlights, zero hover tints */}
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 w-full h-full pointer-events-auto"
           style={{
-            left: '28.71%',
-            top: '39.07%',
-            width: '17.54%',
-            height: '17.54%',
-            transformOrigin: '30% 40%',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
           }}
         >
-          <img
-            src="/image/sprites/left_paw.png"
-            alt=""
-            className="w-full h-full object-contain"
+          {/* Head */}
+          <ellipse
+            cx="49"
+            cy="21"
+            rx="14"
+            ry="13"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch Hunny Bear's head"
+            onClick={(e) => handleRegionClick(e, 'head', '✨')}
+            onKeyDown={(e) => handleKeyDown(e, 'head', '✨')}
           />
-        </div>
 
-        {/* Right Paw / Arm (Waving hand or tummy hug) */}
-        <div
-          className={`absolute pointer-events-none transition-all duration-400 ease-out ${
-            activePawWave === 'right'
-              ? 'animate-paw-wave-right z-20'
-              : isTummyLove
-              ? '-translate-x-3 translate-y-3 -rotate-12 scale-105 z-20'
-              : 'animate-paw-rest'
-          }`}
-          style={{
-            left: '43.86%',
-            top: '39.47%',
-            width: '17.54%',
-            height: '17.54%',
-            transformOrigin: '70% 40%',
-          }}
-        >
-          <img
-            src="/image/sprites/right_paw.png"
-            alt=""
-            className="w-full h-full object-contain"
+          {/* Left Ear */}
+          <ellipse
+            cx="36"
+            cy="13"
+            rx="8.5"
+            ry="8.5"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch left ear"
+            onClick={(e) => handleRegionClick(e, 'left-ear', '👂')}
+            onKeyDown={(e) => handleKeyDown(e, 'left-ear', '👂')}
           />
-        </div>
 
-        {/* Left Foot (Foot tap lifting and stamping on rainbow path) */}
-        <div
-          className={`absolute pointer-events-none transition-transform duration-300 ease-out ${
-            activeFootTap === 'left' ? 'animate-foot-stamp z-10' : ''
-          }`}
-          style={{
-            left: '31.10%',
-            top: '70.18%',
-            width: '15.95%',
-            height: '13.56%',
-            transformOrigin: '50% 20%',
-          }}
-        >
-          <img
-            src="/image/sprites/left_foot.png"
-            alt=""
-            className="w-full h-full object-contain"
+          {/* Right Ear */}
+          <ellipse
+            cx="66"
+            cy="20"
+            rx="8.5"
+            ry="9"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch right ear"
+            onClick={(e) => handleRegionClick(e, 'right-ear', '👂')}
+            onKeyDown={(e) => handleKeyDown(e, 'right-ear', '👂')}
           />
-        </div>
 
-        {/* Right Foot (Foot tap lifting and stamping on rainbow path) */}
-        <div
-          className={`absolute pointer-events-none transition-transform duration-300 ease-out ${
-            activeFootTap === 'right' ? 'animate-foot-stamp-right z-10' : ''
-          }`}
-          style={{
-            left: '48.64%',
-            top: '70.57%',
-            width: '16.75%',
-            height: '13.56%',
-            transformOrigin: '50% 20%',
-          }}
-        >
-          <img
-            src="/image/sprites/right_foot.png"
-            alt=""
-            className="w-full h-full object-contain"
+          {/* Left Eye */}
+          <ellipse
+            cx="42.5"
+            cy="24.5"
+            rx="5.5"
+            ry="6"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch left eye"
+            onClick={(e) => handleRegionClick(e, 'left-eye', '👀')}
+            onKeyDown={(e) => handleKeyDown(e, 'left-eye', '👀')}
           />
-        </div>
+
+          {/* Right Eye */}
+          <ellipse
+            cx="57.5"
+            cy="27.5"
+            rx="5.5"
+            ry="6"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch right eye"
+            onClick={(e) => handleRegionClick(e, 'right-eye', '👀')}
+            onKeyDown={(e) => handleKeyDown(e, 'right-eye', '👀')}
+          />
+
+          {/* Nose */}
+          <ellipse
+            cx="48.5"
+            cy="30.5"
+            rx="5.5"
+            ry="4.5"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch nose"
+            onClick={(e) => handleRegionClick(e, 'nose', '👃')}
+            onKeyDown={(e) => handleKeyDown(e, 'nose', '👃')}
+          />
+
+          {/* Mouth */}
+          <ellipse
+            cx="47.5"
+            cy="35"
+            rx="7"
+            ry="4.5"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch mouth"
+            onClick={(e) => handleRegionClick(e, 'mouth', '😮')}
+            onKeyDown={(e) => handleKeyDown(e, 'mouth', '😮')}
+          />
+
+          {/* Left Cheek */}
+          <ellipse
+            cx="36.5"
+            cy="29"
+            rx="6.5"
+            ry="6"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch left cheek"
+            onClick={(e) => handleRegionClick(e, 'left-cheek', '🌸')}
+            onKeyDown={(e) => handleKeyDown(e, 'left-cheek', '🌸')}
+          />
+
+          {/* Right Cheek */}
+          <ellipse
+            cx="61"
+            cy="33.5"
+            rx="6.5"
+            ry="6"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch right cheek"
+            onClick={(e) => handleRegionClick(e, 'right-cheek', '🌸')}
+            onKeyDown={(e) => handleKeyDown(e, 'right-cheek', '🌸')}
+          />
+
+          {/* Left Hand / Paw */}
+          <ellipse
+            cx="37.5"
+            cy="46"
+            rx="9"
+            ry="9"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch left paw"
+            onClick={(e) => handleRegionClick(e, 'left-hand', '👋')}
+            onKeyDown={(e) => handleKeyDown(e, 'left-hand', '👋')}
+          />
+
+          {/* Right Hand / Paw */}
+          <ellipse
+            cx="52.5"
+            cy="46.5"
+            rx="9"
+            ry="9"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch right paw"
+            onClick={(e) => handleRegionClick(e, 'right-hand', '👋')}
+            onKeyDown={(e) => handleKeyDown(e, 'right-hand', '👋')}
+          />
+
+          {/* Stomach / Tummy */}
+          <ellipse
+            cx="48"
+            cy="60"
+            rx="14"
+            ry="14.5"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch stomach"
+            onClick={(e) => handleRegionClick(e, 'stomach', '💖')}
+            onKeyDown={(e) => handleKeyDown(e, 'stomach', '💖')}
+          />
+
+          {/* Left Foot */}
+          <ellipse
+            cx="39"
+            cy="78"
+            rx="9.5"
+            ry="7.5"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch left foot"
+            onClick={(e) => handleRegionClick(e, 'left-foot', '🐾')}
+            onKeyDown={(e) => handleKeyDown(e, 'left-foot', '🐾')}
+          />
+
+          {/* Right Foot */}
+          <ellipse
+            cx="57"
+            cy="78"
+            rx="9.5"
+            ry="7.5"
+            fill="transparent"
+            stroke="none"
+            className="cursor-pointer outline-hidden"
+            tabIndex={0}
+            role="button"
+            aria-label="Gently touch right foot"
+            onClick={(e) => handleRegionClick(e, 'right-foot', '🐾')}
+            onKeyDown={(e) => handleKeyDown(e, 'right-foot', '🐾')}
+          />
+        </svg>
       </div>
 
-      {/* 4. INTERACTIVE TOUCH HITBOXES (Mapped directly over the 10 distinct body parts) */}
-
-      {/* Head */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'head', '✨')}
-        aria-label="Gently touch Hunny Bear's head"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '42%',
-          top: '8%',
-          width: '20%',
-          height: '17%',
-        }}
-      />
-
-      {/* Left Ear */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'left-ear', '👂')}
-        aria-label="Gently touch left ear"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '29%',
-          top: '7%',
-          width: '14%',
-          height: '14%',
-        }}
-      />
-
-      {/* Right Ear */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'right-ear', '👂')}
-        aria-label="Gently touch right ear"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '60%',
-          top: '14%',
-          width: '14%',
-          height: '15%',
-        }}
-      />
-
-      {/* Left Eye */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'left-eye', '👀')}
-        aria-label="Gently touch left eye"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '37%',
-          top: '20%',
-          width: '11%',
-          height: '11%',
-        }}
-      />
-
-      {/* Right Eye */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'right-eye', '👀')}
-        aria-label="Gently touch right eye"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '52%',
-          top: '23%',
-          width: '11%',
-          height: '11%',
-        }}
-      />
-
-      {/* Nose */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'nose', '👃')}
-        aria-label="Gently touch nose"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-90 transition-all"
-        style={{
-          left: '43.5%',
-          top: '27%',
-          width: '11%',
-          height: '8%',
-        }}
-      />
-
-      {/* Mouth */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'mouth', '😮')}
-        aria-label="Gently touch mouth"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '42%',
-          top: '31%',
-          width: '13%',
-          height: '9%',
-        }}
-      />
-
-      {/* Left Cheek */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'left-cheek', '🌸')}
-        aria-label="Gently touch left cheek"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-rose-300/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '31%',
-          top: '24%',
-          width: '11%',
-          height: '11%',
-        }}
-      />
-
-      {/* Right Cheek */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'right-cheek', '🌸')}
-        aria-label="Gently touch right cheek"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-rose-300/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '55%',
-          top: '28%',
-          width: '11%',
-          height: '11%',
-        }}
-      />
-
-      {/* Left Hand / Paw */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'left-hand', '👋')}
-        aria-label="Gently touch left paw"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '29%',
-          top: '38%',
-          width: '17%',
-          height: '17%',
-        }}
-      />
-
-      {/* Right Hand / Paw */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'right-hand', '👋')}
-        aria-label="Gently touch right paw"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '45%',
-          top: '39%',
-          width: '17%',
-          height: '17%',
-        }}
-      />
-
-      {/* Stomach / Tummy */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'stomach', '💖')}
-        aria-label="Gently touch stomach"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '35%',
-          top: '46%',
-          width: '26%',
-          height: '25%',
-        }}
-      />
-
-      {/* Left Foot */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'left-foot', '🐾')}
-        aria-label="Gently touch left foot"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '31%',
-          top: '71%',
-          width: '17%',
-          height: '14%',
-        }}
-      />
-
-      {/* Right Foot */}
-      <button
-        onClick={(e) => handleRegionClick(e, 'right-foot', '🐾')}
-        aria-label="Gently touch right foot"
-        className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
-        style={{
-          left: '49%',
-          top: '71%',
-          width: '17%',
-          height: '14%',
-        }}
-      />
-
-      {/* 5. FLOATING PARTICLES ON TAP (Stars, hearts, paws) */}
+      {/* 5. FLOATING PARTICLES (Delightful hearts, stars, sparkles that bloom from touched spots) */}
       {particles.map((p) => (
         <span
           key={p.id}

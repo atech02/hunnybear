@@ -292,7 +292,7 @@ export const App: React.FC = () => {
       <footer className="w-full max-w-lg flex flex-col items-center gap-1.5 mb-1 shrink-0 z-10">
         
         {/* Simple prompt */}
-        <p className="text-xs sm:text-sm font-extrabold text-[#593A2A] text-center bg-white/80 px-4 py-1 rounded-full border border-amber-200/60 shadow-xs">
+        <p className="text-xs sm:text-sm font-extrabold text-[#593A2A] text-center bg-white/85 backdrop-blur-xs px-4 py-1 rounded-full border border-amber-200/50 shadow-xs">
           👉 Gently touch Hunny Bear to play!
         </p>
 
@@ -301,7 +301,7 @@ export const App: React.FC = () => {
           {/* How Do You Feel Today? */}
           <button
             onClick={() => setShowCheckIn(true)}
-            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-white hover:bg-amber-50 text-[#593A2A] border-2 border-amber-300 font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition-all cursor-pointer"
+            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-white/90 hover:bg-white text-[#593A2A] border border-amber-200/80 font-extrabold text-xs sm:text-sm shadow-xs hover:shadow-sm active:scale-95 transition-all cursor-pointer"
           >
             <Smile className="w-4 h-4 text-[#E9B44C]" />
             <span>How do you feel today?</span>
@@ -310,7 +310,7 @@ export const App: React.FC = () => {
           {/* Kindness Challenge */}
           <button
             onClick={handleStartKindnessChallenge}
-            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-gradient-to-r from-[#E9B44C] to-[#A96B3C] hover:opacity-95 text-white font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition-all cursor-pointer"
+            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-gradient-to-r from-[#E9B44C] to-[#A96B3C] hover:opacity-95 text-white font-extrabold text-xs sm:text-sm shadow-xs hover:shadow-sm active:scale-95 transition-all cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
             <span>Make Bear Smile! 🌟</span>
