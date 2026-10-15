@@ -32,7 +32,7 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
     const timer = setInterval(() => {
       if (animationState === 'idle') {
         setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 180);
+        setTimeout(() => setIsBlinking(false), 170);
       }
     }, 3600);
     return () => clearInterval(timer);
@@ -90,7 +90,7 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
     onTapRegion(region);
   };
 
-  // Determine dynamic animation CSS classes
+  // Determine dynamic animation CSS states
   const isHeadTilting = animationState === 'head-tilt';
   const isNoseBooping = animationState === 'nose-boop';
   const isEarLeftSurprise = animationState === 'ear-surprise-left';
@@ -105,310 +105,321 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[500px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-200/90 bg-[#FFF8EA] select-none touch-manipulation mx-auto"
+      className="relative w-full max-w-[480px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-200/90 bg-[#FFF8EA] select-none touch-manipulation mx-auto flex items-center justify-center"
       style={{
         boxShadow: '0 18px 40px -10px rgba(89, 58, 42, 0.3), 0 0 24px rgba(233, 180, 76, 0.25)',
       }}
     >
-      {/* 1. BASE BACKGROUND & CHARACTER SCENE (The user's authentic Whimsical Bear image) */}
+      {/* 1. LAYER 1: BACKGROUND SCENERY (Rainbow path, mushrooms, waterfall, stream - NO BEAR) */}
       <img
-        src="/image/Whimsical Bear by the Rainbow Stream.png"
-        alt="Hunny Bear by the Rainbow Stream"
-        className={`w-full h-full object-cover pointer-events-none transition-transform duration-700 ease-out ${
-          animationState === 'idle' ? 'animate-gentle-breathe' : ''
-        }`}
+        src="/image/scenery_background.png"
+        alt="Fairytale Scenery by the Rainbow Stream"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
       />
 
-      {/* 2. LAYERED ANIMATED SPRITES FROM THE USER'S ASSET */}
-
-      {/* Head Layer (Idle breathing bob, Head tilt, Nose boop recoil, Ear surprise tilt) */}
+      {/* 2. LAYER 2: SOLE HUNNY BEAR CHARACTER (Grounded on the rainbow path) */}
       <div
-        className={`absolute pointer-events-none transition-transform duration-500 ease-out ${
-          isHeadTilting
-            ? 'rotate-8 translate-x-1 -translate-y-1 scale-102'
-            : isNoseBooping
-            ? '-translate-y-4 scale-97'
-            : isEarLeftSurprise
-            ? '-rotate-7 -translate-x-2'
-            : isEarRightSurprise
-            ? 'rotate-7 translate-x-2'
-            : isCheekSmileLeft
-            ? 'rotate-5 -translate-x-1'
-            : isCheekSmileRight
-            ? '-rotate-5 translate-x-1'
-            : animationState === 'idle'
-            ? 'animate-head-bob'
-            : ''
+        className={`absolute inset-0 pointer-events-none z-10 transition-transform duration-700 ease-out flex items-center justify-center ${
+          animationState === 'idle' ? 'animate-gentle-breathe' : ''
         }`}
-        style={{
-          left: '28.71%',
-          top: '13.56%',
-          width: '44.66%',
-          height: '41.47%',
-          transformOrigin: '50% 85%',
-        }}
       >
         <img
-          src="/image/sprites/head.png"
-          alt=""
-          className="w-full h-full object-contain"
+          src="/image/hunnybear_character.png"
+          alt="Hunny Bear"
+          className="w-full h-full object-contain pointer-events-none select-none"
         />
 
-        {/* Wiggling Nose Overlay on Head */}
-        <div
-          className={`absolute transition-transform duration-150 ${
-            isNoseBooping ? 'animate-wiggle-fast scale-110' : ''
-          }`}
-          style={{
-            left: '33.9%',
-            top: '49.0%',
-            width: '21.4%',
-            height: '18.3%',
-          }}
-        >
-          <img
-            src="/image/sprites/nose.png"
-            alt=""
-            className="w-full h-full object-contain"
-          />
-        </div>
+        {/* 3. LAYERED ANIMATED SPRITES DERIVED FROM JOYFUL CUDDLY TEDDY BEAR */}
 
-        {/* Left Ear Overlay on Head */}
+        {/* Head Layer (Idle breathing bob, Head tilt, Nose boop recoil, Ear surprise tilt) */}
         <div
-          className={`absolute transition-transform duration-300 ${
-            isEarLeftSurprise ? 'rotate-12 -translate-y-1' : ''
-          }`}
-          style={{
-            left: '14.3%',
-            top: '3.8%',
-            width: '32.1%',
-            height: '34.6%',
-            transformOrigin: '70% 80%',
-          }}
-        >
-          <img
-            src="/image/sprites/left_ear.png"
-            alt=""
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* Right Ear Overlay on Head */}
-        <div
-          className={`absolute transition-transform duration-300 ${
-            isEarRightSurprise ? '-rotate-12 -translate-y-1' : ''
-          }`}
-          style={{
-            left: '67.8%',
-            top: '23.0%',
-            width: '32.1%',
-            height: '36.5%',
-            transformOrigin: '30% 80%',
-          }}
-        >
-          <img
-            src="/image/sprites/right_ear.png"
-            alt=""
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* Blinking Eyelid Overlays on Eyes */}
-        {(isBlinking || isEyeBlinkLeft || isEyeBlinkRight || isNoseBooping) && (
-          <>
-            {/* Left Eyelid */}
-            <div
-              className={`absolute bg-[#9D633C] rounded-full transition-all duration-100 ${
-                isBlinking || isEyeBlinkLeft || isNoseBooping
-                  ? 'h-7 opacity-95'
-                  : 'h-0 opacity-0'
-              }`}
-              style={{
-                left: '26.8%',
-                top: '38.5%',
-                width: '18.5%',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
-              }}
-            />
-            {/* Right Eyelid */}
-            <div
-              className={`absolute bg-[#9D633C] rounded-full transition-all duration-100 ${
-                isBlinking || isEyeBlinkRight || isNoseBooping
-                  ? 'h-7 opacity-95'
-                  : 'h-0 opacity-0'
-              }`}
-              style={{
-                left: '53.6%',
-                top: '46.0%',
-                width: '19.6%',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
-              }}
-            />
-          </>
-        )}
-
-        {/* Rosy Cheek Blush Glow */}
-        <div
-          className={`absolute rounded-full bg-rose-400/40 blur-xs transition-opacity duration-300 pointer-events-none ${
-            isCheekSmileLeft || isTummyLove ? 'opacity-90 scale-125' : 'opacity-0'
-          }`}
-          style={{
-            left: '11.5%',
-            top: '46.0%',
-            width: '21.4%',
-            height: '23.0%',
-          }}
-        />
-        <div
-          className={`absolute rounded-full bg-rose-400/40 blur-xs transition-opacity duration-300 pointer-events-none ${
-            isCheekSmileRight || isTummyLove ? 'opacity-90 scale-125' : 'opacity-0'
-          }`}
-          style={{
-            left: '59.8%',
-            top: '55.8%',
-            width: '23.2%',
-            height: '23.0%',
-          }}
-        />
-
-        {/* Mouth Overlay (Speaking visemes / Surprised "O" shape) */}
-        <div
-          className={`absolute transition-transform duration-150 ${
-            isSpeaking
-              ? 'animate-mouth-speak'
-              : isMouthSurprise
-              ? 'scale-y-140 scale-x-75'
-              : mouthShape === 'smile'
-              ? 'scale-105'
+          className={`absolute pointer-events-none transition-transform duration-450 ease-out ${
+            isHeadTilting
+              ? 'rotate-8 translate-x-1 -translate-y-1 scale-102'
+              : isNoseBooping
+              ? '-translate-y-4 scale-97'
+              : isEarLeftSurprise
+              ? '-rotate-7 -translate-x-2'
+              : isEarRightSurprise
+              ? 'rotate-7 translate-x-2'
+              : isCheekSmileLeft
+              ? 'rotate-5 -translate-x-1'
+              : isCheekSmileRight
+              ? '-rotate-5 translate-x-1'
+              : animationState === 'idle'
+              ? 'animate-head-bob'
               : ''
           }`}
           style={{
-            left: '31.2%',
-            top: '59.6%',
-            width: '26.8%',
-            height: '21.1%',
-            transformOrigin: '50% 30%',
+            left: '27.11%',
+            top: '6.38%',
+            width: '47.85%',
+            height: '43.06%',
+            transformOrigin: '50% 88%',
           }}
         >
           <img
-            src="/image/sprites/mouth.png"
+            src="/image/sprites/head.png"
+            alt=""
+            className="w-full h-full object-contain"
+          />
+
+          {/* Wiggling Nose Overlay on Head */}
+          <div
+            className={`absolute transition-transform duration-150 ${
+              isNoseBooping ? 'animate-wiggle-fast scale-110' : ''
+            }`}
+            style={{
+              left: '32.5%',
+              top: '48.1%',
+              width: '21.7%',
+              height: '19.4%',
+            }}
+          >
+            <img
+              src="/image/sprites/nose.png"
+              alt=""
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Left Ear Overlay on Head */}
+          <div
+            className={`absolute transition-transform duration-300 ${
+              isEarLeftSurprise ? 'rotate-12 -translate-y-1' : ''
+            }`}
+            style={{
+              left: '0.0%',
+              top: '1.8%',
+              width: '33.3%',
+              height: '37.0%',
+              transformOrigin: '70% 80%',
+            }}
+          >
+            <img
+              src="/image/sprites/left_ear.png"
+              alt=""
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Right Ear Overlay on Head */}
+          <div
+            className={`absolute transition-transform duration-300 ${
+              isEarRightSurprise ? '-rotate-12 -translate-y-1' : ''
+            }`}
+            style={{
+              left: '63.3%',
+              top: '20.4%',
+              width: '33.3%',
+              height: '38.9%',
+              transformOrigin: '30% 80%',
+            }}
+          >
+            <img
+              src="/image/sprites/right_ear.png"
+              alt=""
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Blinking Eyelid Overlays on Eyes */}
+          {(isBlinking || isEyeBlinkLeft || isEyeBlinkRight || isNoseBooping) && (
+            <>
+              {/* Left Eyelid */}
+              <div
+                className={`absolute bg-[#9D633C] rounded-full transition-all duration-100 ${
+                  isBlinking || isEyeBlinkLeft || isNoseBooping
+                    ? 'h-6 sm:h-7 opacity-95'
+                    : 'h-0 opacity-0'
+                }`}
+                style={{
+                  left: '23.3%',
+                  top: '36.5%',
+                  width: '20.0%',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
+                }}
+              />
+              {/* Right Eyelid */}
+              <div
+                className={`absolute bg-[#9D633C] rounded-full transition-all duration-100 ${
+                  isBlinking || isEyeBlinkRight || isNoseBooping
+                    ? 'h-6 sm:h-7 opacity-95'
+                    : 'h-0 opacity-0'
+                }`}
+                style={{
+                  left: '50.0%',
+                  top: '43.9%',
+                  width: '20.8%',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
+                }}
+              />
+            </>
+          )}
+
+          {/* Rosy Cheek Blush Glow */}
+          <div
+            className={`absolute rounded-full bg-rose-400/40 blur-xs transition-opacity duration-300 pointer-events-none ${
+              isCheekSmileLeft || isTummyLove ? 'opacity-90 scale-125' : 'opacity-0'
+            }`}
+            style={{
+              left: '8.3%',
+              top: '42.6%',
+              width: '25.0%',
+              height: '25.9%',
+            }}
+          />
+          <div
+            className={`absolute rounded-full bg-rose-400/40 blur-xs transition-opacity duration-300 pointer-events-none ${
+              isCheekSmileRight || isTummyLove ? 'opacity-90 scale-125' : 'opacity-0'
+            }`}
+            style={{
+              left: '56.7%',
+              top: '51.8%',
+              width: '25.0%',
+              height: '25.9%',
+            }}
+          />
+
+          {/* Mouth Overlay (Speech viseme modulation / Surprised "O") */}
+          <div
+            className={`absolute transition-transform duration-150 ${
+              isSpeaking
+                ? 'animate-mouth-speak'
+                : isMouthSurprise
+                ? 'scale-y-135 scale-x-75'
+                : mouthShape === 'smile'
+                ? 'scale-105'
+                : ''
+            }`}
+            style={{
+              left: '30.0%',
+              top: '57.4%',
+              width: '26.7%',
+              height: '22.2%',
+              transformOrigin: '50% 30%',
+            }}
+          >
+            <img
+              src="/image/sprites/mouth.png"
+              alt=""
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+
+        {/* Tummy Layer (Bouncy tummy love reaction) */}
+        <div
+          className={`absolute pointer-events-none transition-transform duration-500 ease-out ${
+            isTummyLove ? 'animate-tummy-hug scale-108' : 'animate-tummy-idle'
+          }`}
+          style={{
+            left: '34.29%',
+            top: '44.66%',
+            width: '27.11%',
+            height: '28.71%',
+            transformOrigin: '50% 60%',
+          }}
+        >
+          <img
+            src="/image/sprites/tummy.png"
+            alt=""
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* Left Paw / Arm (Waving hand, tummy hug, or face guard) */}
+        <div
+          className={`absolute pointer-events-none transition-all duration-400 ease-out ${
+            activePawWave === 'left'
+              ? 'animate-paw-wave z-20'
+              : isTummyLove
+              ? 'translate-x-3 translate-y-3 rotate-12 scale-105 z-20'
+              : isEyeBlinkLeft || isMouthSurprise
+              ? '-translate-y-8 translate-x-2 -rotate-15 z-20'
+              : 'animate-paw-rest'
+          }`}
+          style={{
+            left: '28.71%',
+            top: '39.07%',
+            width: '17.54%',
+            height: '17.54%',
+            transformOrigin: '30% 40%',
+          }}
+        >
+          <img
+            src="/image/sprites/left_paw.png"
+            alt=""
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* Right Paw / Arm (Waving hand or tummy hug) */}
+        <div
+          className={`absolute pointer-events-none transition-all duration-400 ease-out ${
+            activePawWave === 'right'
+              ? 'animate-paw-wave-right z-20'
+              : isTummyLove
+              ? '-translate-x-3 translate-y-3 -rotate-12 scale-105 z-20'
+              : 'animate-paw-rest'
+          }`}
+          style={{
+            left: '43.86%',
+            top: '39.47%',
+            width: '17.54%',
+            height: '17.54%',
+            transformOrigin: '70% 40%',
+          }}
+        >
+          <img
+            src="/image/sprites/right_paw.png"
+            alt=""
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* Left Foot (Foot tap lifting and stamping on rainbow path) */}
+        <div
+          className={`absolute pointer-events-none transition-transform duration-300 ease-out ${
+            activeFootTap === 'left' ? 'animate-foot-stamp z-10' : ''
+          }`}
+          style={{
+            left: '31.10%',
+            top: '70.18%',
+            width: '15.95%',
+            height: '13.56%',
+            transformOrigin: '50% 20%',
+          }}
+        >
+          <img
+            src="/image/sprites/left_foot.png"
+            alt=""
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* Right Foot (Foot tap lifting and stamping on rainbow path) */}
+        <div
+          className={`absolute pointer-events-none transition-transform duration-300 ease-out ${
+            activeFootTap === 'right' ? 'animate-foot-stamp-right z-10' : ''
+          }`}
+          style={{
+            left: '48.64%',
+            top: '70.57%',
+            width: '16.75%',
+            height: '13.56%',
+            transformOrigin: '50% 20%',
+          }}
+        >
+          <img
+            src="/image/sprites/right_foot.png"
             alt=""
             className="w-full h-full object-contain"
           />
         </div>
       </div>
 
-      {/* Tummy Layer (Soft breathing expansion, bouncy tummy love reaction) */}
-      <div
-        className={`absolute pointer-events-none transition-transform duration-500 ease-out ${
-          isTummyLove ? 'animate-tummy-hug scale-108' : 'animate-tummy-idle'
-        }`}
-        style={{
-          left: '35.89%',
-          top: '51.83%',
-          width: '26.32%',
-          height: '27.91%',
-          transformOrigin: '50% 60%',
-        }}
-      >
-        <img
-          src="/image/sprites/tummy.png"
-          alt=""
-          className="w-full h-full object-contain"
-        />
-      </div>
-
-      {/* Left Paw / Arm (Waving hand, tummy hug, or mouth raise) */}
-      <div
-        className={`absolute pointer-events-none transition-all duration-400 ease-out ${
-          activePawWave === 'left'
-            ? 'animate-paw-wave z-20'
-            : isTummyLove
-            ? 'translate-x-3 translate-y-3 rotate-12 scale-105 z-20'
-            : isEyeBlinkLeft || isMouthSurprise
-            ? '-translate-y-8 translate-x-2 -rotate-15 z-20'
-            : 'animate-paw-rest'
-        }`}
-        style={{
-          left: '31.5%',
-          top: '45.85%',
-          width: '16.35%',
-          height: '16.35%',
-          transformOrigin: '30% 40%',
-        }}
-      >
-        <img
-          src="/image/sprites/left_paw.png"
-          alt=""
-          className="w-full h-full object-contain"
-        />
-      </div>
-
-      {/* Right Paw / Arm (Waving hand or tummy hug) */}
-      <div
-        className={`absolute pointer-events-none transition-all duration-400 ease-out ${
-          activePawWave === 'right'
-            ? 'animate-paw-wave-right z-20'
-            : isTummyLove
-            ? '-translate-x-3 translate-y-3 -rotate-12 scale-105 z-20'
-            : 'animate-paw-rest'
-        }`}
-        style={{
-          left: '45.45%',
-          top: '46.25%',
-          width: '16.35%',
-          height: '16.35%',
-          transformOrigin: '70% 40%',
-        }}
-      >
-        <img
-          src="/image/sprites/right_paw.png"
-          alt=""
-          className="w-full h-full object-contain"
-        />
-      </div>
-
-      {/* Left Foot (Foot tap lifting and stamping on rainbow path) */}
-      <div
-        className={`absolute pointer-events-none transition-transform duration-300 ease-out ${
-          activeFootTap === 'left' ? 'animate-foot-stamp z-10' : ''
-        }`}
-        style={{
-          left: '33.49%',
-          top: '76.55%',
-          width: '15.55%',
-          height: '13.16%',
-          transformOrigin: '50% 20%',
-        }}
-      >
-        <img
-          src="/image/sprites/left_foot.png"
-          alt=""
-          className="w-full h-full object-contain"
-        />
-      </div>
-
-      {/* Right Foot (Foot tap lifting and stamping on rainbow path) */}
-      <div
-        className={`absolute pointer-events-none transition-transform duration-300 ease-out ${
-          activeFootTap === 'right' ? 'animate-foot-stamp-right z-10' : ''
-        }`}
-        style={{
-          left: '50.64%',
-          top: '76.95%',
-          width: '16.35%',
-          height: '13.16%',
-          transformOrigin: '50% 20%',
-        }}
-      >
-        <img
-          src="/image/sprites/right_foot.png"
-          alt=""
-          className="w-full h-full object-contain"
-        />
-      </div>
-
-      {/* 3. INTERACTIVE TOUCH HITBOXES (Mapped directly over the 10 distinct body parts) */}
+      {/* 4. INTERACTIVE TOUCH HITBOXES (Mapped directly over the 10 distinct body parts) */}
 
       {/* Head */}
       <button
@@ -416,10 +427,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch Hunny Bear's head"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '43%',
-          top: '16%',
-          width: '18%',
-          height: '16%',
+          left: '42%',
+          top: '8%',
+          width: '20%',
+          height: '17%',
         }}
       />
 
@@ -429,8 +440,8 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch left ear"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '34%',
-          top: '15%',
+          left: '29%',
+          top: '7%',
           width: '14%',
           height: '14%',
         }}
@@ -442,10 +453,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch right ear"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '59%',
-          top: '23%',
+          left: '60%',
+          top: '14%',
           width: '14%',
-          height: '14%',
+          height: '15%',
         }}
       />
 
@@ -455,8 +466,8 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch left eye"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '39%',
-          top: '28%',
+          left: '37%',
+          top: '20%',
           width: '11%',
           height: '11%',
         }}
@@ -469,7 +480,7 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/15 focus:outline-hidden active:scale-95 transition-all"
         style={{
           left: '52%',
-          top: '32%',
+          top: '23%',
           width: '11%',
           height: '11%',
         }}
@@ -482,7 +493,7 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-90 transition-all"
         style={{
           left: '43.5%',
-          top: '34%',
+          top: '27%',
           width: '11%',
           height: '8%',
         }}
@@ -494,10 +505,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch mouth"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '42.5%',
-          top: '39%',
+          left: '42%',
+          top: '31%',
           width: '13%',
-          height: '8%',
+          height: '9%',
         }}
       />
 
@@ -507,9 +518,9 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch left cheek"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-rose-300/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '33%',
-          top: '33%',
-          width: '10%',
+          left: '31%',
+          top: '24%',
+          width: '11%',
           height: '11%',
         }}
       />
@@ -520,8 +531,8 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch right cheek"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-rose-300/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '56%',
-          top: '37%',
+          left: '55%',
+          top: '28%',
           width: '11%',
           height: '11%',
         }}
@@ -533,10 +544,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch left paw"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '32%',
-          top: '46%',
-          width: '15%',
-          height: '15%',
+          left: '29%',
+          top: '38%',
+          width: '17%',
+          height: '17%',
         }}
       />
 
@@ -546,10 +557,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch right paw"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '46%',
-          top: '46.5%',
-          width: '15%',
-          height: '15%',
+          left: '45%',
+          top: '39%',
+          width: '17%',
+          height: '17%',
         }}
       />
 
@@ -559,10 +570,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch stomach"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '37%',
-          top: '55%',
-          width: '24%',
-          height: '21%',
+          left: '35%',
+          top: '46%',
+          width: '26%',
+          height: '25%',
         }}
       />
 
@@ -572,10 +583,10 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch left foot"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '33%',
-          top: '77%',
-          width: '16%',
-          height: '13%',
+          left: '31%',
+          top: '71%',
+          width: '17%',
+          height: '14%',
         }}
       />
 
@@ -585,14 +596,14 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
         aria-label="Gently touch right foot"
         className="absolute z-30 cursor-pointer rounded-full hover:bg-amber-400/20 focus:outline-hidden active:scale-95 transition-all"
         style={{
-          left: '50%',
-          top: '77%',
+          left: '49%',
+          top: '71%',
           width: '17%',
-          height: '13%',
+          height: '14%',
         }}
       />
 
-      {/* 4. FLOATING PARTICLES ON TAP (Stars, hearts, paws) */}
+      {/* 5. FLOATING PARTICLES ON TAP (Stars, hearts, paws) */}
       {particles.map((p) => (
         <span
           key={p.id}

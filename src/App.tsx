@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Download, Sparkles, Smile, RefreshCw } from 'lucide-react';
-import { HunnyBear3D } from './components/HunnyBear3D';
+import { InteractiveHunnyBear } from './components/InteractiveHunnyBear';
 import { HappinessMeter } from './components/HappinessMeter';
 import { EmotionCheckIn } from './components/EmotionCheckIn';
 import { HelpModal } from './components/HelpModal';
@@ -278,31 +278,14 @@ export const App: React.FC = () => {
         </p>
       </header>
 
-      {/* 2. CENTER AREA: LIVE ANIMATED 3D BEAR IN FRONT OF SCENERY (No static duplicate bear) */}
+      {/* 2. CENTER AREA: SCENERY BACKGROUND & LIVE INTERACTIVE HUNNY BEAR */}
       <main className="w-full flex-1 flex flex-col items-center justify-center relative my-0.5 overflow-hidden">
-        <div
-          className="relative w-full max-w-[480px] aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-200/90 bg-[#FFF8EA] select-none touch-manipulation mx-auto flex items-center justify-center"
-          style={{
-            boxShadow: '0 18px 40px -10px rgba(89, 58, 42, 0.3), 0 0 24px rgba(233, 180, 76, 0.25)',
-          }}
-        >
-          {/* Fairytale Background Scenery (Winding rainbow path, waterfall, stream, trees, mushrooms - NO BEAR) */}
-          <img
-            src="/image/scenery_background.png"
-            alt="Fairytale Scenery by the Rainbow Stream"
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-          />
-
-          {/* Sole Visible Character: Live Animated 3D Hunny Bear */}
-          <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center">
-            <HunnyBear3D
-              animationState={animationState}
-              mouthShape={mouthShape}
-              isSpeaking={isSpeaking}
-              onTapRegion={handleTapRegion}
-            />
-          </div>
-        </div>
+        <InteractiveHunnyBear
+          animationState={animationState}
+          mouthShape={mouthShape}
+          isSpeaking={isSpeaking}
+          onTapRegion={handleTapRegion}
+        />
       </main>
 
       {/* 3. BOTTOM AREA: INSTRUCTION & EMOTIONAL ACTIVITIES */}
