@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { BodyRegion, AnimationState, MouthShape } from '../types/game';
 
 interface InteractiveHunnyBearProps {
@@ -17,12 +17,38 @@ interface TapParticle {
 
 export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
   animationState,
-  mouthShape: _mouthShape,
+  mouthShape,
   isSpeaking,
   onTapRegion,
 }) => {
   const [particles, setParticles] = useState<TapParticle[]>([]);
+  const [isIdleBlinking, setIsIdleBlinking] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Natural spontaneous eye blinking when idle so Hunny Bear feels alive
+  useEffect(() => {
+    let blinkTimeout: number;
+    let isMounted = true;
+
+    const scheduleBlink = () => {
+      const delay = 3400 + Math.random() * 2400; // 3.4s - 5.8s
+      blinkTimeout = window.setTimeout(() => {
+        if (!isMounted) return;
+        setIsIdleBlinking(true);
+        window.setTimeout(() => {
+          if (!isMounted) return;
+          setIsIdleBlinking(false);
+          scheduleBlink();
+        }, 160);
+      }, delay);
+    };
+
+    scheduleBlink();
+    return () => {
+      isMounted = false;
+      clearTimeout(blinkTimeout);
+    };
+  }, []);
 
   // Trigger floating visual tap feedback particle (hearts, sparkles, stars, paws)
   const spawnParticle = (clientX: number, clientY: number, symbol: string) => {
@@ -73,32 +99,45 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
   // Determine organic animation class applied to the whole character
   const getBearAnimationClass = (): string => {
     switch (animationState) {
+      case 'leftHandWave':
       case 'wave-left':
         return 'animate-bear-wave-left';
+      case 'rightHandWave':
       case 'wave-right':
         return 'animate-bear-wave-right';
+      case 'leftFootTap':
       case 'foot-tap-left':
         return 'animate-bear-foot-tap-left';
+      case 'rightFootTap':
       case 'foot-tap-right':
         return 'animate-bear-foot-tap-right';
-      case 'tummy-love':
-      case 'tummy-giggle':
-        return 'animate-bear-tummy-hug';
-      case 'nose-boop':
-        return 'animate-bear-boop';
-      case 'ear-surprise-left':
-        return 'animate-bear-ear-surprise-left';
-      case 'ear-surprise-right':
-        return 'animate-bear-ear-surprise-right';
-      case 'eye-blink-left':
-      case 'eye-blink-right':
-        return 'animate-bear-eye-blink';
+      case 'leftCheekSmile':
       case 'cheek-smile-left':
         return 'animate-bear-cheek-smile-left';
+      case 'rightCheekSmile':
       case 'cheek-smile-right':
         return 'animate-bear-cheek-smile-right';
+      case 'leftEyeReaction':
+      case 'eye-blink-left':
+        return 'animate-bear-eye-reaction-left';
+      case 'rightEyeReaction':
+      case 'eye-blink-right':
+        return 'animate-bear-eye-reaction-right';
+      case 'leftEarGloomy':
+      case 'ear-surprise-left':
+        return 'animate-bear-ear-gloomy-left';
+      case 'rightEarGloomy':
+      case 'ear-surprise-right':
+        return 'animate-bear-ear-gloomy-right';
+      case 'mouthShock':
       case 'mouth-surprise':
-        return 'animate-bear-mouth-surprise';
+        return 'animate-bear-mouth-shock';
+      case 'tummyHappy':
+      case 'tummy-love':
+      case 'tummy-giggle':
+        return 'animate-bear-tummy-happy';
+      case 'nose-boop':
+        return 'animate-bear-boop';
       case 'head-tilt':
         return 'animate-bear-head-tilt';
       case 'idle':
@@ -107,10 +146,46 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
     }
   };
 
-  const isCheekBlushing =
+  // Facial feature states
+  const isLeftEyeClosed =
+    isIdleBlinking ||
+    animationState === 'leftEyeReaction' ||
+    animationState === 'eye-blink-left';
+
+  const isRightEyeClosed =
+    isIdleBlinking ||
+    animationState === 'rightEyeReaction' ||
+    animationState === 'eye-blink-right';
+
+  const isEyesSquintingJoy =
+    animationState === 'leftCheekSmile' ||
+    animationState === 'rightCheekSmile' ||
+    animationState === 'tummyHappy' ||
     animationState === 'cheek-smile-left' ||
     animationState === 'cheek-smile-right' ||
     animationState === 'tummy-love';
+
+  const isEyesSurprised =
+    animationState === 'mouthShock' ||
+    animationState === 'mouth-surprise';
+
+  const isEyebrowsConfused =
+    animationState === 'leftEyeReaction' ||
+    animationState === 'rightEyeReaction' ||
+    animationState === 'eye-blink-left' ||
+    animationState === 'eye-blink-right';
+
+  const isGloomyEar =
+    animationState === 'leftEarGloomy' ||
+    animationState === 'rightEarGloomy' ||
+    animationState === 'ear-surprise-left' ||
+    animationState === 'ear-surprise-right';
+
+  const isMouthShockO =
+    animationState === 'mouthShock' ||
+    animationState === 'mouth-surprise';
+
+  const isCheekBlushing = isEyesSquintingJoy;
 
   return (
     <div
@@ -181,8 +256,7 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
           }}
         />
 
-        {/* 4. 100% INVISIBLE SHAPE-AWARE SVG TOUCH HITBOXES */}
-        {/* Strictly zero rectangular borders, zero background highlights, zero hover tints */}
+        {/* 4. SEAMLESS SVG FACIAL OVERLAY & 100% INVISIBLE TOUCH HITBOXES */}
         <svg
           viewBox="0 0 100 100"
           className="absolute inset-0 w-full h-full pointer-events-auto"
@@ -191,7 +265,105 @@ export const InteractiveHunnyBear: React.FC<InteractiveHunnyBearProps> = ({
             WebkitTapHighlightColor: 'transparent',
           }}
         >
-          {/* Head */}
+          {/* --- A. SEAMLESS FACIAL EXPRESSION OVERLAYS (Eyes, Eyebrows, Mouth) --- */}
+          <g className="pointer-events-none select-none">
+            {/* Left Eye Expression / Blinking */}
+            {isLeftEyeClosed ? (
+              <g>
+                <ellipse cx="42.5" cy="24.5" rx="5.5" ry="5.5" fill="#E2A654" />
+                <path d="M 37.5 24.5 Q 42.5 28 47.5 24.5" fill="none" stroke="#4A2610" strokeWidth="1.8" strokeLinecap="round" />
+              </g>
+            ) : isEyesSquintingJoy ? (
+              <g>
+                <ellipse cx="42.5" cy="24.5" rx="5.5" ry="5.5" fill="#E2A654" />
+                <path d="M 38 25 Q 42.5 21 47 25" fill="none" stroke="#4A2610" strokeWidth="2.0" strokeLinecap="round" />
+              </g>
+            ) : isGloomyEar ? (
+              <path d="M 38 22 Q 42.5 25 47 22.5" fill="#E2A654" stroke="#4A2610" strokeWidth="1.2" opacity="0.65" />
+            ) : isEyesSurprised ? (
+              <circle cx="43.8" cy="23.2" r="1.5" fill="#FFFFFF" opacity="0.9" />
+            ) : null}
+
+            {/* Right Eye Expression / Blinking */}
+            {isRightEyeClosed ? (
+              <g>
+                <ellipse cx="57.5" cy="26.5" rx="5.5" ry="5.5" fill="#E2A654" />
+                <path d="M 52.5 26.5 Q 57.5 30 62.5 26.5" fill="none" stroke="#4A2610" strokeWidth="1.8" strokeLinecap="round" />
+              </g>
+            ) : isEyesSquintingJoy ? (
+              <g>
+                <ellipse cx="57.5" cy="26.5" rx="5.5" ry="5.5" fill="#E2A654" />
+                <path d="M 53 27 Q 57.5 23 62 27" fill="none" stroke="#4A2610" strokeWidth="2.0" strokeLinecap="round" />
+              </g>
+            ) : isGloomyEar ? (
+              <path d="M 53 24 Q 57.5 27 62 24.5" fill="#E2A654" stroke="#4A2610" strokeWidth="1.2" opacity="0.65" />
+            ) : isEyesSurprised ? (
+              <circle cx="58.8" cy="25.2" r="1.5" fill="#FFFFFF" opacity="0.9" />
+            ) : null}
+
+            {/* Left Eyebrow (Confused, Surprised, Gloomy, Happy) */}
+            <path
+              d={
+                isEyebrowsConfused
+                  ? 'M 38 18 Q 42.5 20.5 47 17.5'
+                  : isEyesSurprised
+                  ? 'M 38 14.5 Q 42.5 12.5 47 15'
+                  : isGloomyEar
+                  ? 'M 38 19.5 Q 42.5 18 47 20.5'
+                  : isEyesSquintingJoy
+                  ? 'M 38 17 Q 42.5 15 47 17.5'
+                  : 'M 38 18 Q 42.5 16.5 47 18.5'
+              }
+              fill="none"
+              stroke="#5A2E14"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              className="transition-all duration-300"
+            />
+
+            {/* Right Eyebrow (Confused, Surprised, Gloomy, Happy) */}
+            <path
+              d={
+                isEyebrowsConfused
+                  ? 'M 53 17.5 Q 57.5 20.5 62 18'
+                  : isEyesSurprised
+                  ? 'M 53 15 Q 57.5 12.5 62 14.5'
+                  : isGloomyEar
+                  ? 'M 53 20.5 Q 57.5 18 62 19.5'
+                  : isEyesSquintingJoy
+                  ? 'M 53 17.5 Q 57.5 15.5 62 18'
+                  : 'M 53 18.5 Q 57.5 16.5 62 18'
+              }
+              fill="none"
+              stroke="#5A2E14"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              className="transition-all duration-300"
+            />
+
+            {/* Mouth Expression (Shocked "O", Gloomy Pout, Wide Joy Smile, Speaking Viseme) */}
+            {isMouthShockO ? (
+              <g className="transition-all duration-200">
+                <ellipse cx="49" cy="35" rx="3.8" ry="4.5" fill="#3B180B" stroke="#E2A654" strokeWidth="1.2" />
+                <ellipse cx="49" cy="36.8" rx="2.2" ry="1.8" fill="#E86E74" />
+              </g>
+            ) : isGloomyEar ? (
+              <path d="M 45.5 35.5 Q 49 33.5 52.5 35.5" fill="none" stroke="#4E2310" strokeWidth="1.8" strokeLinecap="round" />
+            ) : isSpeaking ? (
+              <ellipse
+                cx="49"
+                cy="34.8"
+                rx="3.2"
+                ry={mouthShape === 'wide-open' ? 3.5 : mouthShape === 'slightly-open' ? 2.2 : 1.0}
+                fill="#4E2310"
+                opacity="0.85"
+              />
+            ) : isEyesSquintingJoy || animationState === 'leftHandWave' || animationState === 'rightHandWave' ? (
+              <path d="M 44 33.5 Q 49 38.5 54 34" fill="none" stroke="#4E2310" strokeWidth="2.2" strokeLinecap="round" />
+            ) : null}
+          </g>
+
+          {/* --- B. 100% INVISIBLE TOUCH HITBOXES --- */}
           <ellipse
             cx="49"
             cy="21"

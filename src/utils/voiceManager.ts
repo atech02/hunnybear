@@ -85,27 +85,37 @@ class VoiceManager {
   private getBoyVoiceParams(text: string): { pitch: number; rate: number } {
     const lower = text.toLowerCase();
 
-    // Surprised phrases: higher, playful intonation
-    if (lower.includes('ear') || lower.includes('surprise') || lower.includes('boop')) {
-      return { pitch: 1.58, rate: 1.05 };
+    // Shocked / surprised phrase: "Huh? Weird!" or "Boop!"
+    if (lower.includes('weird') || lower.includes('boop') || lower.includes('surprise')) {
+      return { pitch: 1.60, rate: 1.06 };
     }
 
-    // Affectionate phrases: warm, tender, sweet
-    if (lower.includes('love') || lower.includes('sweet')) {
-      return { pitch: 1.42, rate: 0.94 };
+    // Affectionate phrase: "I love you!"
+    if (lower.includes('love')) {
+      return { pitch: 1.44, rate: 0.93 };
     }
 
-    // Playful rhythmic foot tap
-    if (lower.includes('tap')) {
-      return { pitch: 1.48, rate: 1.04 };
+    // Giggly cheerful phrase: "You're funny!"
+    if (lower.includes('funny')) {
+      return { pitch: 1.55, rate: 1.04 };
     }
 
-    // Caution / gentle touch
-    if (lower.includes('gentle') || lower.includes('oops')) {
-      return { pitch: 1.44, rate: 0.96 };
+    // Gentle boundary warning for sensitive eye touch: "That hurts!"
+    if (lower.includes('hurts')) {
+      return { pitch: 1.46, rate: 0.95 };
     }
 
-    // Default cheerful friendly boy voice
+    // Gentle gloomy/cautious warning for ear touch: "No, careful!"
+    if (lower.includes('careful')) {
+      return { pitch: 1.42, rate: 0.92 };
+    }
+
+    // Playful greeting for foot tap: "Hey, you!"
+    if (lower.includes('hey, you') || lower.includes('tap')) {
+      return { pitch: 1.52, rate: 1.02 };
+    }
+
+    // Default friendly boy voice for hand wave: "Hi, friend!"
     return { pitch: 1.50, rate: 1.0 };
   }
 

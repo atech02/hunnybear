@@ -281,22 +281,28 @@
    Applied to the whole transparent character so all elements remain seamless
    ========================================================================= */
 
-/* 1. Gentle Organic Breathing Idle */
+/* 1. Gentle Organic Breathing Idle (Breathe, subtle head movement, planted feet) */
 @keyframes bear-idle-kf {
   0%, 100% {
     transform: scale(1) translateY(0) rotate(0deg);
   }
-  50% {
-    transform: scale(1.018, 1.012) translateY(-4px) rotate(0.4deg);
+  30% {
+    transform: scale(1.015, 1.01) translateY(-3px) rotate(0.4deg);
+  }
+  60% {
+    transform: scale(0.995, 1.008) translateY(-1px) rotate(-0.3deg);
+  }
+  85% {
+    transform: scale(1.012, 1.01) translateY(-2px) rotate(0.2deg);
   }
 }
 
 .animate-bear-idle {
-  animation: bear-idle-kf 3.8s ease-in-out infinite;
+  animation: bear-idle-kf 4.2s ease-in-out infinite;
   transform-origin: 50% 86%;
 }
 
-/* 2. Speaking Rhythm Animation */
+/* 2. Speaking Rhythm Animation (Lively talking bounce) */
 @keyframes bear-speaking-kf {
   0%, 100% {
     transform: scale(1) translateY(0) rotate(0deg);
@@ -317,22 +323,28 @@
   transform-origin: 50% 86%;
 }
 
-/* 3. Left Hand Wave Animation */
+/* 3. Left Hand Wave Animation: Raise hand, wave 3 times side to side, turn head toward hand, cheerful smile */
 @keyframes bear-wave-left-kf {
   0% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
-  20% {
-    transform: scale(1.03, 1.02) translateY(-10px) rotate(3deg);
+  15% {
+    transform: scale(1.03, 1.02) translateY(-14px) rotate(5deg);
   }
-  40% {
-    transform: scale(1.02, 1.03) translateY(-14px) rotate(5.5deg);
+  30% {
+    transform: scale(1.02, 1.03) translateY(-10px) rotate(1.5deg);
+  }
+  45% {
+    transform: scale(1.03, 1.02) translateY(-14px) rotate(5.5deg);
   }
   60% {
-    transform: scale(1.03, 1.02) translateY(-10px) rotate(3deg);
+    transform: scale(1.02, 1.03) translateY(-10px) rotate(1.5deg);
   }
-  80% {
-    transform: scale(1.02, 1.03) translateY(-14px) rotate(5deg);
+  75% {
+    transform: scale(1.03, 1.02) translateY(-14px) rotate(5deg);
+  }
+  90% {
+    transform: scale(1.01, 1.01) translateY(-4px) rotate(2deg);
   }
   100% {
     transform: scale(1) translateY(0) rotate(0deg);
@@ -340,26 +352,32 @@
 }
 
 .animate-bear-wave-left {
-  animation: bear-wave-left-kf 1.1s ease-in-out;
+  animation: bear-wave-left-kf 1.25s ease-in-out;
   transform-origin: 50% 86%;
 }
 
-/* 4. Right Hand Wave Animation */
+/* 4. Right Hand Wave Animation: Raise hand, wave 3 times side to side, turn head toward hand */
 @keyframes bear-wave-right-kf {
   0% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
-  20% {
-    transform: scale(1.03, 1.02) translateY(-10px) rotate(-3deg);
+  15% {
+    transform: scale(1.03, 1.02) translateY(-14px) rotate(-5deg);
   }
-  40% {
-    transform: scale(1.02, 1.03) translateY(-14px) rotate(-5.5deg);
+  30% {
+    transform: scale(1.02, 1.03) translateY(-10px) rotate(-1.5deg);
+  }
+  45% {
+    transform: scale(1.03, 1.02) translateY(-14px) rotate(-5.5deg);
   }
   60% {
-    transform: scale(1.03, 1.02) translateY(-10px) rotate(-3deg);
+    transform: scale(1.02, 1.03) translateY(-10px) rotate(-1.5deg);
   }
-  80% {
-    transform: scale(1.02, 1.03) translateY(-14px) rotate(-5deg);
+  75% {
+    transform: scale(1.03, 1.02) translateY(-14px) rotate(-5deg);
+  }
+  90% {
+    transform: scale(1.01, 1.01) translateY(-4px) rotate(-2deg);
   }
   100% {
     transform: scale(1) translateY(0) rotate(0deg);
@@ -367,23 +385,32 @@
 }
 
 .animate-bear-wave-right {
-  animation: bear-wave-right-kf 1.1s ease-in-out;
+  animation: bear-wave-right-kf 1.25s ease-in-out;
   transform-origin: 50% 86%;
 }
 
-/* 5. Left Foot Tap Animation */
+/* 5. Left Foot Tap: Lift touched foot, tap down 3 times, coordinated body bounce, look down slightly */
 @keyframes bear-foot-tap-left-kf {
   0% {
     transform: translateY(0) rotate(0deg);
   }
-  25% {
-    transform: translateY(-12px) rotate(2.5deg);
+  16% {
+    transform: translateY(-14px) rotate(2.5deg);
   }
-  45% {
+  32% {
     transform: translateY(0) rotate(0deg);
   }
-  70% {
-    transform: translateY(-9px) rotate(2deg);
+  48% {
+    transform: translateY(-11px) rotate(2deg);
+  }
+  64% {
+    transform: translateY(0) rotate(0deg);
+  }
+  80% {
+    transform: translateY(-7px) rotate(1.2deg);
+  }
+  92% {
+    transform: translateY(-2px) rotate(0.4deg);
   }
   100% {
     transform: translateY(0) rotate(0deg);
@@ -391,23 +418,32 @@
 }
 
 .animate-bear-foot-tap-left {
-  animation: bear-foot-tap-left-kf 0.65s cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: bear-foot-tap-left-kf 0.95s cubic-bezier(0.25, 0.8, 0.35, 1);
   transform-origin: 50% 86%;
 }
 
-/* 6. Right Foot Tap Animation */
+/* 6. Right Foot Tap: Lift touched foot, tap down 3 times, coordinated body bounce, look down slightly */
 @keyframes bear-foot-tap-right-kf {
   0% {
     transform: translateY(0) rotate(0deg);
   }
-  25% {
-    transform: translateY(-12px) rotate(-2.5deg);
+  16% {
+    transform: translateY(-14px) rotate(-2.5deg);
   }
-  45% {
+  32% {
     transform: translateY(0) rotate(0deg);
   }
-  70% {
-    transform: translateY(-9px) rotate(-2deg);
+  48% {
+    transform: translateY(-11px) rotate(-2deg);
+  }
+  64% {
+    transform: translateY(0) rotate(0deg);
+  }
+  80% {
+    transform: translateY(-7px) rotate(-1.2deg);
+  }
+  92% {
+    transform: translateY(-2px) rotate(-0.4deg);
   }
   100% {
     transform: translateY(0) rotate(0deg);
@@ -415,32 +451,36 @@
 }
 
 .animate-bear-foot-tap-right {
-  animation: bear-foot-tap-right-kf 0.65s cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: bear-foot-tap-right-kf 0.95s cubic-bezier(0.25, 0.8, 0.35, 1);
   transform-origin: 50% 86%;
 }
 
-/* 7. Tummy Hug / Tickle Animation */
-@keyframes bear-tummy-hug-kf {
+/* 7. Tummy Happy / Affectionate: Look down at tummy, playful belly bounce, broad smile, body sway */
+@keyframes bear-tummy-happy-kf {
   0% {
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
-  25% {
-    transform: scale(1.07, 0.95) translateY(4px);
+  20% {
+    transform: scale(1.08, 0.94) translateY(4px) rotate(-2deg);
   }
-  50% {
-    transform: scale(0.97, 1.05) translateY(-8px);
+  40% {
+    transform: scale(0.96, 1.06) translateY(-9px) rotate(2.5deg);
   }
-  75% {
-    transform: scale(1.04, 0.98) translateY(0);
+  60% {
+    transform: scale(1.05, 0.97) translateY(-2px) rotate(-2deg);
+  }
+  80% {
+    transform: scale(0.99, 1.02) translateY(-4px) rotate(1deg);
   }
   100% {
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
 }
 
+.animate-bear-tummy-happy,
 .animate-bear-tummy-hug {
-  animation: bear-tummy-hug-kf 0.8s ease-in-out;
-  transform-origin: 50% 70%;
+  animation: bear-tummy-happy-kf 1.0s ease-in-out;
+  transform-origin: 50% 72%;
 }
 
 /* 8. Boop Nose Recoil Animation */
@@ -467,85 +507,118 @@
   transform-origin: 50% 86%;
 }
 
-/* 9. Sensitive Left Ear Surprise */
-@keyframes bear-ear-surprise-left-kf {
+/* 9. Sensitive Left Ear Gloomy: Fold ear, lower eyebrows, tilt away right, gloomy expression */
+@keyframes bear-ear-gloomy-left-kf {
   0% {
     transform: rotate(0deg) translateY(0);
   }
   25% {
-    transform: rotate(4.5deg) translateY(-8px) scale(0.98);
+    transform: rotate(5.5deg) translateY(-6px) scale(0.97);
   }
   50% {
-    transform: rotate(3deg) translateY(-4px);
+    transform: rotate(4deg) translateY(-2px);
   }
   75% {
-    transform: rotate(1.5deg) translateY(-2px);
+    transform: rotate(2deg) translateY(-1px);
   }
   100% {
     transform: rotate(0deg) translateY(0) scale(1);
   }
 }
 
+.animate-bear-ear-gloomy-left,
 .animate-bear-ear-surprise-left {
-  animation: bear-ear-surprise-left-kf 0.85s ease-out;
+  animation: bear-ear-gloomy-left-kf 0.95s ease-out;
   transform-origin: 50% 86%;
 }
 
-/* 10. Sensitive Right Ear Surprise */
-@keyframes bear-ear-surprise-right-kf {
+/* 10. Sensitive Right Ear Gloomy: Fold ear, lower eyebrows, tilt away left, gloomy expression */
+@keyframes bear-ear-gloomy-right-kf {
   0% {
     transform: rotate(0deg) translateY(0);
   }
   25% {
-    transform: rotate(-4.5deg) translateY(-8px) scale(0.98);
+    transform: rotate(-5.5deg) translateY(-6px) scale(0.97);
   }
   50% {
-    transform: rotate(-3deg) translateY(-4px);
+    transform: rotate(-4deg) translateY(-2px);
   }
   75% {
-    transform: rotate(-1.5deg) translateY(-2px);
+    transform: rotate(-2deg) translateY(-1px);
   }
   100% {
     transform: rotate(0deg) translateY(0) scale(1);
   }
 }
 
+.animate-bear-ear-gloomy-right,
 .animate-bear-ear-surprise-right {
-  animation: bear-ear-surprise-right-kf 0.85s ease-out;
+  animation: bear-ear-gloomy-right-kf 0.95s ease-out;
   transform-origin: 50% 86%;
 }
 
-/* 11. Sensitive Eye Blink & Lean Back */
-@keyframes bear-eye-blink-kf {
+/* 11. Sensitive Eye Reaction Left: Blink touched eye immediately, widen, knit eyebrows, lean back */
+@keyframes bear-eye-reaction-left-kf {
   0% {
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
-  30% {
-    transform: scale(0.97) translateY(-6px);
+  25% {
+    transform: scale(0.96) translateY(-9px) rotate(2deg);
   }
-  60% {
-    transform: scale(0.99) translateY(-2px);
+  55% {
+    transform: scale(0.99) translateY(-3px) rotate(1deg);
+  }
+  80% {
+    transform: scale(1.01) translateY(-1px) rotate(0deg);
   }
   100% {
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
 }
 
+.animate-bear-eye-reaction-left,
 .animate-bear-eye-blink {
-  animation: bear-eye-blink-kf 0.7s ease-in-out;
+  animation: bear-eye-reaction-left-kf 0.85s ease-in-out;
   transform-origin: 50% 86%;
 }
 
-/* 12. Cheek Smile Left (Affectionate nuzzle) */
+/* 12. Sensitive Eye Reaction Right: Blink touched eye immediately, widen, knit eyebrows, lean back */
+@keyframes bear-eye-reaction-right-kf {
+  0% {
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: scale(0.96) translateY(-9px) rotate(-2deg);
+  }
+  55% {
+    transform: scale(0.99) translateY(-3px) rotate(-1deg);
+  }
+  80% {
+    transform: scale(1.01) translateY(-1px) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
+.animate-bear-eye-reaction-right {
+  animation: bear-eye-reaction-right-kf 0.85s ease-in-out;
+  transform-origin: 50% 86%;
+}
+
+/* 13. Cheek Smile Left: Turn head toward touched cheek, wide joyful smile, narrow eyes, blush, gentle giggle */
 @keyframes bear-cheek-smile-left-kf {
   0% {
     transform: rotate(0deg) scale(1);
   }
-  30% {
-    transform: rotate(-3.5deg) scale(1.03) translateY(-4px);
+  25% {
+    transform: rotate(-4.5deg) scale(1.04) translateY(-5px);
   }
-  70% {
-    transform: rotate(-2deg) scale(1.02) translateY(-2px);
+  50% {
+    transform: rotate(-2.5deg) scale(1.03) translateY(-3px);
+  }
+  75% {
+    transform: rotate(-4deg) scale(1.03) translateY(-4px);
   }
   100% {
     transform: rotate(0deg) scale(1) translateY(0);
@@ -553,20 +626,23 @@
 }
 
 .animate-bear-cheek-smile-left {
-  animation: bear-cheek-smile-left-kf 0.9s ease-in-out;
+  animation: bear-cheek-smile-left-kf 1.0s ease-in-out;
   transform-origin: 50% 86%;
 }
 
-/* 13. Cheek Smile Right (Affectionate nuzzle) */
+/* 14. Cheek Smile Right: Turn head toward touched cheek, wide joyful smile, narrow eyes, blush, gentle giggle */
 @keyframes bear-cheek-smile-right-kf {
   0% {
     transform: rotate(0deg) scale(1);
   }
-  30% {
-    transform: rotate(3.5deg) scale(1.03) translateY(-4px);
+  25% {
+    transform: rotate(4.5deg) scale(1.04) translateY(-5px);
   }
-  70% {
-    transform: rotate(2deg) scale(1.02) translateY(-2px);
+  50% {
+    transform: rotate(2.5deg) scale(1.03) translateY(-3px);
+  }
+  75% {
+    transform: rotate(4deg) scale(1.03) translateY(-4px);
   }
   100% {
     transform: rotate(0deg) scale(1) translateY(0);
@@ -574,41 +650,45 @@
 }
 
 .animate-bear-cheek-smile-right {
-  animation: bear-cheek-smile-right-kf 0.9s ease-in-out;
+  animation: bear-cheek-smile-right-kf 1.0s ease-in-out;
   transform-origin: 50% 86%;
 }
 
-/* 14. Mouth Surprise Lift */
-@keyframes bear-mouth-surprise-kf {
+/* 15. Mouth Shock & Surprised: Round "O" mouth, widen eyes, raise eyebrows, pull head back slightly */
+@keyframes bear-mouth-shock-kf {
   0% {
     transform: scale(1) translateY(0);
   }
-  25% {
-    transform: scale(1.04, 1.06) translateY(-10px);
+  20% {
+    transform: scale(1.04, 1.06) translateY(-12px);
   }
-  60% {
-    transform: scale(0.98, 1.02) translateY(-4px);
+  45% {
+    transform: scale(0.97, 1.03) translateY(-8px);
+  }
+  70% {
+    transform: scale(1.02, 1.01) translateY(-3px);
   }
   100% {
     transform: scale(1) translateY(0);
   }
 }
 
+.animate-bear-mouth-shock,
 .animate-bear-mouth-surprise {
-  animation: bear-mouth-surprise-kf 0.8s ease-out;
+  animation: bear-mouth-shock-kf 0.9s ease-out;
   transform-origin: 50% 86%;
 }
 
-/* 15. Inquisitive Head Tilt */
+/* 16. Inquisitive Head Tilt */
 @keyframes bear-head-tilt-kf {
   0% {
     transform: rotate(0deg);
   }
   30% {
-    transform: rotate(-4deg) translateY(-4px);
+    transform: rotate(-4.5deg) translateY(-4px);
   }
   70% {
-    transform: rotate(-2deg) translateY(-2px);
+    transform: rotate(-2.5deg) translateY(-2px);
   }
   100% {
     transform: rotate(0deg);
@@ -619,5 +699,6 @@
   animation: bear-head-tilt-kf 0.9s ease-in-out;
   transform-origin: 50% 86%;
 }
+
 
 

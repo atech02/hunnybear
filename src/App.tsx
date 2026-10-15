@@ -73,11 +73,12 @@ export const App: React.FC = () => {
 
   // Main interaction handler for body parts
   const handleTapRegion = (region: BodyRegion) => {
+    // Quick cooldown to allow responsive natural transitions without freeze
     if (isCooldownRef.current) return;
     isCooldownRef.current = true;
     setTimeout(() => {
       isCooldownRef.current = false;
-    }, 600);
+    }, 150);
 
     const feedback = getInteractionFeedback(region);
     if (!feedback) return;
@@ -101,10 +102,9 @@ export const App: React.FC = () => {
       setScoreChangeDelta(feedback.scoreChange);
     }
 
-    // 2. Play sound effects
-    // For stomach: explicitly use a giggle sound for tickling
+    // 2. Play matching sound effects
     if (region === 'stomach' || region === 'tummy') {
-      soundEngine.playTickle();
+      soundEngine.playTummyLove();
     } else {
       switch (feedback.soundType) {
         case 'boop':
@@ -134,7 +134,7 @@ export const App: React.FC = () => {
       }
     }
 
-    // 3. Trigger coordinated animation state
+    // 3. Trigger coordinated animation state immediately
     setAnimationState(feedback.animationState);
 
     // 4. Trigger spoken little boy voice (Audio only — NO SUBTITLES ON SCREEN per requirements)
@@ -145,9 +145,15 @@ export const App: React.FC = () => {
       () => {
         setIsSpeaking(false);
         setMouthShape('closed');
+
+        // For stomach: add a soft playful giggle after saying "I love you!"
+        if (region === 'stomach' || region === 'tummy') {
+          soundEngine.playTickle();
+        }
+
         setTimeout(() => {
           setAnimationState('idle');
-        }, 450);
+        }, 400);
       }
     );
   };

@@ -19,6 +19,19 @@ export type BodyRegion =
 
 export type AnimationState = 
   | 'idle'
+  | 'leftHandWave'
+  | 'rightHandWave'
+  | 'leftFootTap'
+  | 'rightFootTap'
+  | 'leftCheekSmile'
+  | 'rightCheekSmile'
+  | 'leftEyeReaction'
+  | 'rightEyeReaction'
+  | 'leftEarGloomy'
+  | 'rightEarGloomy'
+  | 'mouthShock'
+  | 'tummyHappy'
+  // Backward compatibility aliases
   | 'wave-left'
   | 'wave-right'
   | 'foot-tap-left'
@@ -34,7 +47,6 @@ export type AnimationState =
   | 'cheek-smile-right'
   | 'mouth-surprise'
   | 'head-tilt'
-  // Legacy / 2D animation states for full backward compatibility
   | 'eye-hurt'
   | 'nose-wiggle'
   | 'ear-sensitive'
