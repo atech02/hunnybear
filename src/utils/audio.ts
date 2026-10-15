@@ -59,6 +59,39 @@ class SoundEngine {
     });
   }
 
+  // Tummy Love Chime (Warm, affectionate, sweet melody for "I love you!")
+  public playTummyLove() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    const now = ctx.currentTime;
+
+    const loveNotes = [440.0, 554.37, 659.25, 880.0]; // A major arpeggio
+    loveNotes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      const start = now + idx * 0.09;
+      const end = start + 0.45;
+
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, end);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(start);
+      osc.stop(end);
+    });
+  }
+
+  // Friendly Head Tilt / Hello Chime
+  public playHeadTilt() {
+    this.playWave();
+  }
+
   // 2. Nose Boop / Soft Sneeze Tickle
   public playBoop() {
     if (this.isMuted) return;

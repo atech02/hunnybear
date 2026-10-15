@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Download, Sparkles, Smile, RefreshCw } from 'lucide-react';
-import { AnimatedHunnyBear } from './components/AnimatedHunnyBear';
+import { HunnyBear3D } from './components/HunnyBear3D';
 import { HappinessMeter } from './components/HappinessMeter';
-import { SpeechBubble } from './components/SpeechBubble';
 import { EmotionCheckIn } from './components/EmotionCheckIn';
 import { HelpModal } from './components/HelpModal';
-import type { BodyRegion, EmotionType, AnimationState, MouthShape, FeelingOption } from './types/game';
-import { INTERACTION_MAP } from './utils/emotionManager';
+import type { BodyRegion, AnimationState, MouthShape, FeelingOption } from './types/game';
+import { getInteractionFeedback } from './utils/emotionManager';
 import { voiceManager } from './utils/voiceManager';
 import { soundEngine } from './utils/audio';
 
@@ -17,16 +16,13 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const App: React.FC = () => {
-  // Score starts at 50 per Section 7 specification
+  // Score starts at 50 per specification
   const [score, setScore] = useState<number>(50);
   const [scoreChangeDelta, setScoreChangeDelta] = useState<number | null>(null);
 
-  // Animation and character states
+  // 3D Animation and character states
   const [animationState, setAnimationState] = useState<AnimationState>('idle');
   const [mouthShape, setMouthShape] = useState<MouthShape>('closed');
-  const [currentEmotion, setCurrentEmotion] = useState<EmotionType>('happy');
-  const [spokenText, setSpokenText] = useState<string>("Hello, friend! Gently touch my nose, tummy, or paws to play!");
-  const [educationalMessage, setEducationalMessage] = useState<string>("Gentle hands help our friends feel safe and loved.");
   
   // Audio & Modals
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -39,7 +35,7 @@ export const App: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
 
-  // Debounce tap cooldown to prevent accidental double scoring
+  // Tap cooldown to ensure smooth coordinated animation transitions
   const isCooldownRef = useRef<boolean>(false);
 
   // PWA capture
@@ -75,15 +71,15 @@ export const App: React.FC = () => {
     setDeferredPrompt(null);
   };
 
-  // Main interaction handler for the 8 body parts
+  // Main interaction handler for 3D body parts
   const handleTapRegion = (region: BodyRegion) => {
     if (isCooldownRef.current) return;
     isCooldownRef.current = true;
     setTimeout(() => {
       isCooldownRef.current = false;
-    }, 650);
+    }, 600);
 
-    const feedback = INTERACTION_MAP[region];
+    const feedback = getInteractionFeedback(region);
     if (!feedback) return;
 
     // 1. Update score clamped strictly between 0 and 100
@@ -105,26 +101,27 @@ export const App: React.FC = () => {
       setScoreChangeDelta(feedback.scoreChange);
     }
 
-    // 2. Set Emotion and Messages
-    setCurrentEmotion(feedback.emotion);
-    setSpokenText(feedback.spokenDialogue);
-    setEducationalMessage(feedback.educationalMessage);
-
-    // 3. Play matching sound effect
+    // 2. Play matching child-friendly synthesized sound effect
     switch (feedback.soundType) {
-      case 'tickle':
+      case 'tummy-love':
+        soundEngine.playTummyLove();
+        break;
+      case 'giggle':
         soundEngine.playTickle();
         break;
       case 'boop':
         soundEngine.playBoop();
         break;
-      case 'cheek-gentle':
+      case 'sweet':
         soundEngine.playCheekGentle();
         break;
-      case 'ear-sensitive':
+      case 'ear-surprise':
         soundEngine.playEarSensitive();
         break;
-      case 'mouth-space':
+      case 'eye-gentle':
+        soundEngine.playEarSensitive();
+        break;
+      case 'surprise':
         soundEngine.playMouthSpace();
         break;
       case 'wave':
@@ -133,14 +130,17 @@ export const App: React.FC = () => {
       case 'foot-tap':
         soundEngine.playFootTap();
         break;
+      case 'head-tilt':
+        soundEngine.playHeadTilt();
+        break;
       default:
         break;
     }
 
-    // 4. Trigger character animation
+    // 3. Trigger 3D coordinated animation
     setAnimationState(feedback.animationState);
 
-    // 5. Trigger spoken voice with mouth lip-sync
+    // 4. Trigger spoken voice (Audio only — NO SUBTITLES ON SCREEN per requirements)
     setIsSpeaking(true);
     voiceManager.speak(
       feedback.spokenDialogue,
@@ -148,22 +148,9 @@ export const App: React.FC = () => {
       () => {
         setIsSpeaking(false);
         setMouthShape('closed');
-        // Return to idle after animation finishes
         setTimeout(() => {
           setAnimationState('idle');
-        }, 500);
-      }
-    );
-  };
-
-  // Repeat spoken message
-  const handleRepeatVoice = () => {
-    setIsSpeaking(true);
-    voiceManager.repeat(
-      (shape) => setMouthShape(shape),
-      () => {
-        setIsSpeaking(false);
-        setMouthShape('closed');
+        }, 450);
       }
     );
   };
@@ -190,16 +177,13 @@ export const App: React.FC = () => {
   // Feeling Check-In Selection
   const handleSelectFeeling = (feeling: FeelingOption) => {
     setShowCheckIn(false);
-    setCurrentEmotion(feeling.bearEmotion);
-    setSpokenText(feeling.bearResponse);
-    setEducationalMessage("All feelings are okay! Sharing our feelings helps us feel understood.");
     
     if (feeling.id === 'calm') {
       soundEngine.playCalmBreath();
-      setAnimationState('calm-breath');
+      setAnimationState('head-tilt');
     } else {
       soundEngine.playCheekGentle();
-      setAnimationState('cheek-gentle');
+      setAnimationState('cheek-smile-right');
     }
 
     setIsSpeaking(true);
@@ -209,26 +193,23 @@ export const App: React.FC = () => {
       () => {
         setIsSpeaking(false);
         setMouthShape('closed');
-        setTimeout(() => setAnimationState('idle'), 500);
+        setTimeout(() => setAnimationState('idle'), 450);
       }
     );
   };
 
   // Start "Let's Make Hunny Bear Smile!" Challenge
   const handleStartKindnessChallenge = () => {
-    setCurrentEmotion('happy');
-    setSpokenText("Let's play! Can you give me a gentle touch on my cheek or a high-paw?");
-    setEducationalMessage("Gentle touches make Hunny Bear feel happy and comfortable!");
     soundEngine.playWave();
     setAnimationState('wave-left');
     setIsSpeaking(true);
     voiceManager.speak(
-      "Let's play! Can you give me a gentle touch on my cheek or a high-paw?",
+      "Let's play! Can you give me a gentle touch on my cheek, tummy, or paws?",
       (shape) => setMouthShape(shape),
       () => {
         setIsSpeaking(false);
         setMouthShape('closed');
-        setTimeout(() => setAnimationState('idle'), 500);
+        setTimeout(() => setAnimationState('idle'), 450);
       }
     );
   };
@@ -237,17 +218,15 @@ export const App: React.FC = () => {
   const handleResetScore = () => {
     setScore(50);
     setScoreChangeDelta(null);
-    setSpokenText("Ready to explore feelings together! Touch any part gently.");
-    setEducationalMessage("Gentle touches help our friends feel safe.");
-    setCurrentEmotion('calm');
     setAnimationState('idle');
+    soundEngine.playHeadTilt();
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8EA] text-[#593A2A] font-sans flex flex-col justify-between items-center px-3 py-2 sm:py-4 select-none touch-manipulation">
+    <div className="h-screen max-h-screen overflow-hidden bg-[#FFF8EA] text-[#593A2A] font-sans flex flex-col justify-between items-center px-3 py-2 sm:py-3 select-none touch-manipulation">
       
       {/* 1. TOP AREA: TITLE & HAPPINESS METER */}
-      <header className="w-full max-w-xl flex flex-col items-center gap-1.5">
+      <header className="w-full max-w-xl flex flex-col items-center gap-1.5 shrink-0 z-10">
         
         {/* Title Bar */}
         <div className="w-full flex items-center justify-between">
@@ -277,7 +256,7 @@ export const App: React.FC = () => {
             <button
               onClick={handleResetScore}
               aria-label="Reset Happiness Score"
-              className="p-1.5 rounded-xl bg-white text-[#593A2A] hover:bg-amber-100 border border-amber-200 transition-all"
+              className="p-1.5 rounded-xl bg-white text-[#593A2A] hover:bg-amber-100 border border-amber-200 transition-all cursor-pointer"
               title="Reset score to 50"
             >
               <RefreshCw className="w-4 h-4" />
@@ -297,25 +276,14 @@ export const App: React.FC = () => {
         />
 
         {/* Child-friendly Top Instruction */}
-        <p className="text-xs sm:text-sm font-bold text-[#A96B3C] text-center mt-0.5">
+        <p className="text-xs sm:text-sm font-bold text-[#A96B3C] text-center">
           “Hello, friend! Gently touch Hunny Bear and discover how he feels!”
         </p>
       </header>
 
-      {/* 2. REACTION SPEECH BUBBLE */}
-      <div className="w-full max-w-lg my-1">
-        <SpeechBubble
-          spokenText={spokenText}
-          educationalMessage={educationalMessage}
-          currentEmotion={currentEmotion}
-          isSpeaking={isSpeaking}
-          onRepeatVoice={handleRepeatVoice}
-        />
-      </div>
-
-      {/* 3. CENTER AREA: FULL ANIMATED CARTOON BEAR */}
-      <main className="w-full flex-1 flex flex-col items-center justify-center relative my-0.5">
-        <AnimatedHunnyBear
+      {/* 2. CENTER AREA: FULL ANIMATED 3D CARTOON BEAR (Clean visual focus, zero subtitles) */}
+      <main className="w-full flex-1 flex flex-col items-center justify-center relative my-0.5 overflow-hidden">
+        <HunnyBear3D
           animationState={animationState}
           mouthShape={mouthShape}
           isSpeaking={isSpeaking}
@@ -323,12 +291,12 @@ export const App: React.FC = () => {
         />
       </main>
 
-      {/* 4. BOTTOM AREA: INSTRUCTION & EMOTIONAL ACTIVITIES */}
-      <footer className="w-full max-w-lg flex flex-col items-center gap-1.5 mb-1">
+      {/* 3. BOTTOM AREA: INSTRUCTION & EMOTIONAL ACTIVITIES */}
+      <footer className="w-full max-w-lg flex flex-col items-center gap-1.5 mb-1 shrink-0 z-10">
         
         {/* Simple prompt */}
-        <p className="text-xs sm:text-sm font-extrabold text-[#593A2A] text-center bg-white/70 px-4 py-1 rounded-full border border-amber-200/60 shadow-xs">
-          👉 Touch a part of Hunny Bear to play!
+        <p className="text-xs sm:text-sm font-extrabold text-[#593A2A] text-center bg-white/80 px-4 py-1 rounded-full border border-amber-200/60 shadow-xs">
+          👉 Gently touch Hunny Bear to play!
         </p>
 
         {/* Activity Buttons */}
@@ -336,7 +304,7 @@ export const App: React.FC = () => {
           {/* How Do You Feel Today? */}
           <button
             onClick={() => setShowCheckIn(true)}
-            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-white hover:bg-amber-50 text-[#593A2A] border-2 border-amber-300 font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition-all"
+            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-white hover:bg-amber-50 text-[#593A2A] border-2 border-amber-300 font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition-all cursor-pointer"
           >
             <Smile className="w-4 h-4 text-[#E9B44C]" />
             <span>How do you feel today?</span>
@@ -345,7 +313,7 @@ export const App: React.FC = () => {
           {/* Kindness Challenge */}
           <button
             onClick={handleStartKindnessChallenge}
-            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-gradient-to-r from-[#E9B44C] to-[#A96B3C] hover:opacity-95 text-white font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition-all"
+            className="flex-1 max-w-xs flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-gradient-to-r from-[#E9B44C] to-[#A96B3C] hover:opacity-95 text-white font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition-all cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
             <span>Make Bear Smile! 🌟</span>
