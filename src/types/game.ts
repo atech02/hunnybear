@@ -17,8 +17,20 @@ export type BodyRegion =
   | 'left-foot'
   | 'right-foot';
 
-export type AnimationState = 
+export type ReactionPoseState =
   | 'idle'
+  | 'wave'
+  | 'waveLeft'
+  | 'waveRight'
+  | 'happy'
+  | 'shocked'
+  | 'tapFeet'
+  | 'closedEyes'
+  | 'blinkLeft'
+  | 'blinkRight';
+
+export type AnimationState = 
+  | ReactionPoseState
   | 'leftHandWave'
   | 'rightHandWave'
   | 'leftFootTap'
@@ -61,6 +73,7 @@ export interface InteractionFeedback {
   emotion: EmotionType;
   scoreChange: number;
   spokenDialogue: string;
+  audioFile?: string;
   educationalMessage?: string;
   soundType: 'wave' | 'foot-tap' | 'tummy-love' | 'giggle' | 'boop' | 'ear-surprise' | 'eye-gentle' | 'sweet' | 'surprise' | 'head-tilt' | 'tickle' | 'mouth-space' | 'cheek-gentle';
   animationState: AnimationState;

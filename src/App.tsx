@@ -26,20 +26,36 @@ export const App: React.FC = () => {
   
   // Audio & Modals
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isBgmOn, setIsBgmOn] = useState<boolean>(false);
+  const [isBgmOn, setIsBgmOn] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [showCheckIn, setShowCheckIn] = useState<boolean>(false);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
   // PWA installation support
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState<boolean>(false);
+  const [isInstalled, setIsInstalled] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches
+  );
 
-  // Tap cooldown to ensure smooth coordinated animation transitions
+  // Tap debounce & active reaction timers to prevent overlapping audio or stale idle resets
   const isCooldownRef = useRef<boolean>(false);
+  const idleResetTimerRef = useRef<number | null>(null);
+  const activeReactionIdRef = useRef<number>(0);
 
-  // PWA capture
+  const clearReactionTimers = () => {
+    if (idleResetTimerRef.current !== null) {
+      window.clearTimeout(idleResetTimerRef.current);
+      idleResetTimerRef.current = null;
+    }
+  };
+
+  // PWA capture & Background Music initialization
   useEffect(() => {
+    soundEngine.initBGM();
+    const unsubscribeBgm = soundEngine.onBgmStateChange((enabled) => {
+      setIsBgmOn(enabled);
+    });
+
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -53,13 +69,11 @@ export const App: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-    }
-
     return () => {
+      unsubscribeBgm();
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearReactionTimers();
     };
   }, []);
 
@@ -71,14 +85,18 @@ export const App: React.FC = () => {
     setDeferredPrompt(null);
   };
 
-  // Main interaction handler for body parts
+  // Main reaction controller for body-part pokes
   const handleTapRegion = (region: BodyRegion) => {
-    // Quick cooldown to allow responsive natural transitions without freeze
     if (isCooldownRef.current) return;
     isCooldownRef.current = true;
-    setTimeout(() => {
+    window.setTimeout(() => {
       isCooldownRef.current = false;
-    }, 150);
+    }, 110);
+
+    // Cleanly cancel any in-flight reaction timers so rapid pokes never break state
+    clearReactionTimers();
+    const reactionId = ++activeReactionIdRef.current;
+    const reactionStartTime = performance.now();
 
     const feedback = getInteractionFeedback(region);
     if (!feedback) return;
@@ -88,7 +106,6 @@ export const App: React.FC = () => {
       setScore((prev) => {
         const nextScore = Math.max(0, Math.min(100, prev + feedback.scoreChange));
         if (nextScore === 100 && prev < 100) {
-          // 100% Celebration confetti!
           confetti({
             particleCount: 90,
             spread: 80,
@@ -102,7 +119,7 @@ export const App: React.FC = () => {
       setScoreChangeDelta(feedback.scoreChange);
     }
 
-    // 2. Play matching sound effects
+    // 2. Play matching procedural sound effect alongside voice
     if (region === 'stomach' || region === 'tummy') {
       soundEngine.playTummyLove();
     } else {
@@ -134,27 +151,36 @@ export const App: React.FC = () => {
       }
     }
 
-    // 3. Trigger coordinated animation state immediately
+    // 3. Switch immediately to matching reaction animation state
     setAnimationState(feedback.animationState);
 
-    // 4. Trigger spoken little boy voice (Audio only — NO SUBTITLES ON SCREEN per requirements)
+    // 4. Play voice line simultaneously and return smoothly to idle after natural hold
     setIsSpeaking(true);
     voiceManager.speak(
       feedback.spokenDialogue,
       (shape) => setMouthShape(shape),
       () => {
+        if (activeReactionIdRef.current !== reactionId) return;
         setIsSpeaking(false);
         setMouthShape('closed');
 
-        // For stomach: add a soft playful giggle after saying "I love you!"
         if (region === 'stomach' || region === 'tummy') {
           soundEngine.playTickle();
         }
 
-        setTimeout(() => {
-          setAnimationState('idle');
-        }, 400);
-      }
+        const elapsed = performance.now() - reactionStartTime;
+        const isFootTap = region === 'left-foot' || region === 'right-foot';
+        const minHoldMs = isFootTap ? 1580 : 1320;
+        const remainingHold = Math.max(240, minHoldMs - elapsed);
+
+        idleResetTimerRef.current = window.setTimeout(() => {
+          if (activeReactionIdRef.current === reactionId) {
+            setAnimationState('idle');
+          }
+          idleResetTimerRef.current = null;
+        }, remainingHold);
+      },
+      feedback.audioFile
     );
   };
 
@@ -164,7 +190,7 @@ export const App: React.FC = () => {
     setIsMuted(next);
     soundEngine.setMuted(next);
     voiceManager.setMuted(next);
-    if (next) setIsBgmOn(false);
+    setIsBgmOn(soundEngine.getBgmPlaying());
   };
 
   const toggleBgm = () => {
@@ -172,6 +198,9 @@ export const App: React.FC = () => {
       setIsMuted(false);
       soundEngine.setMuted(false);
       voiceManager.setMuted(false);
+      const state = soundEngine.toggleBGM(true);
+      setIsBgmOn(state);
+      return;
     }
     const state = soundEngine.toggleBGM();
     setIsBgmOn(state);
@@ -180,13 +209,18 @@ export const App: React.FC = () => {
   // Feeling Check-In Selection
   const handleSelectFeeling = (feeling: FeelingOption) => {
     setShowCheckIn(false);
-    
+    clearReactionTimers();
+    const reactionId = ++activeReactionIdRef.current;
+
     if (feeling.id === 'calm') {
       soundEngine.playCalmBreath();
-      setAnimationState('head-tilt');
+      setAnimationState('closedEyes');
+    } else if (feeling.id === 'surprised') {
+      soundEngine.playMouthSpace();
+      setAnimationState('shocked');
     } else {
       soundEngine.playCheekGentle();
-      setAnimationState('cheek-smile-right');
+      setAnimationState('happy');
     }
 
     setIsSpeaking(true);
@@ -194,31 +228,45 @@ export const App: React.FC = () => {
       feeling.bearResponse,
       (shape) => setMouthShape(shape),
       () => {
+        if (activeReactionIdRef.current !== reactionId) return;
         setIsSpeaking(false);
         setMouthShape('closed');
-        setTimeout(() => setAnimationState('idle'), 450);
+        idleResetTimerRef.current = window.setTimeout(() => {
+          if (activeReactionIdRef.current === reactionId) {
+            setAnimationState('idle');
+          }
+        }, 450);
       }
     );
   };
 
   // Start "Make Bear Smile!" Challenge
   const handleStartKindnessChallenge = () => {
+    clearReactionTimers();
+    const reactionId = ++activeReactionIdRef.current;
     soundEngine.playWave();
-    setAnimationState('wave-left');
+    setAnimationState('wave');
     setIsSpeaking(true);
     voiceManager.speak(
       "Let's play! Can you give me a gentle touch on my cheek, tummy, or paws?",
       (shape) => setMouthShape(shape),
       () => {
+        if (activeReactionIdRef.current !== reactionId) return;
         setIsSpeaking(false);
         setMouthShape('closed');
-        setTimeout(() => setAnimationState('idle'), 450);
+        idleResetTimerRef.current = window.setTimeout(() => {
+          if (activeReactionIdRef.current === reactionId) {
+            setAnimationState('idle');
+          }
+        }, 450);
       }
     );
   };
 
   // Reset Happiness to 50
   const handleResetScore = () => {
+    clearReactionTimers();
+    ++activeReactionIdRef.current;
     setScore(50);
     setScoreChangeDelta(null);
     setAnimationState('idle');

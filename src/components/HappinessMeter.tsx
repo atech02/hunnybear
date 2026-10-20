@@ -80,16 +80,16 @@ export const HappinessMeter: React.FC<HappinessMeterProps> = ({
 
         {/* Sound & Help Controls */}
         <div className="flex items-center gap-1.5">
-          {/* Lullaby BGM Toggle */}
+          {/* Background Music Toggle */}
           <button
             onClick={onToggleBgm}
             aria-label={isBgmOn ? "Mute Background Music" : "Play Gentle Background Music"}
-            className={`p-1.5 rounded-xl transition-all ${
+            className={`p-1.5 rounded-xl transition-all cursor-pointer ${
               isBgmOn
                 ? 'bg-amber-300 text-amber-950 shadow-inner'
                 : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
             }`}
-            title="Music Box Lullaby"
+            title={isBgmOn ? "Turn Background Music Off" : "Turn Background Music On"}
           >
             <Music className={`w-4 h-4 ${isBgmOn ? 'animate-pulse' : ''}`} />
           </button>

@@ -1,32 +1,267 @@
-// Web Audio API Sound Synthesizer for Hunny Bear
-// 100% offline, zero external file dependencies, high performance on mobile & desktop
+// Web Audio API Sound Synthesizer & Persistent Background Music Manager for Hunny Bear
+
+const BGM_TRACK_FILENAME = 'massobeats - chamomile (freetouse.com).mp3';
+const BGM_TRACK_URL = encodeURI(`/audio/songs/${BGM_TRACK_FILENAME}`);
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
-  private bgmInterval: number | null = null;
+
+  // Persistent single HTMLAudioElement for background music
+  private bgmAudio: HTMLAudioElement | null = null;
+  private isBgmEnabled: boolean = true;
   private isBgmPlaying: boolean = false;
+  private isDucked: boolean = false;
+  private volumeFadeTimer: number | null = null;
+  private unlockListenersBound: boolean = false;
+  private bgmStateListeners: Set<(enabled: boolean, playing: boolean) => void> = new Set();
+
+  public readonly BGM_BASE_VOLUME = 0.2; // 20% volume so spoken voice lines are always clear
+  public readonly BGM_DUCKED_VOLUME = 0.05; // 5% ducked volume while Hunny Bear speaks
 
   private initContext() {
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioCtx();
     }
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {
+        // Ignore resume errors prior to user gesture
+      });
     }
     return this.ctx;
   }
 
+  private ensureBgmAudio(): HTMLAudioElement | null {
+    if (typeof window === 'undefined' || typeof Audio === 'undefined') return null;
+    if (!this.bgmAudio) {
+      try {
+        const audio = new Audio(BGM_TRACK_URL);
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.volume = this.isDucked ? this.BGM_DUCKED_VOLUME : this.BGM_BASE_VOLUME;
+
+        audio.addEventListener('play', () => {
+          this.isBgmPlaying = true;
+          this.notifyBgmListeners();
+        });
+
+        audio.addEventListener('pause', () => {
+          this.isBgmPlaying = false;
+          this.notifyBgmListeners();
+        });
+
+        audio.addEventListener('error', () => {
+          console.warn('[AG-Debug] Background music failed to load:', BGM_TRACK_URL);
+          this.isBgmPlaying = false;
+          this.notifyBgmListeners();
+        });
+
+        this.bgmAudio = audio;
+      } catch (err) {
+        console.warn('[AG-Debug] Could not initialize background music audio:', err);
+        return null;
+      }
+    }
+    return this.bgmAudio;
+  }
+
+  private notifyBgmListeners() {
+    const activeState = this.isBgmEnabled && !this.isMuted;
+    this.bgmStateListeners.forEach((cb) => cb(activeState, this.isBgmPlaying));
+  }
+
+  public onBgmStateChange(cb: (enabled: boolean, playing: boolean) => void): () => void {
+    this.bgmStateListeners.add(cb);
+    return () => {
+      this.bgmStateListeners.delete(cb);
+    };
+  }
+
+  private bindAutoplayUnlockListeners() {
+    if (this.unlockListenersBound || typeof window === 'undefined') return;
+    this.unlockListenersBound = true;
+
+    const handleUserGesture = () => {
+      if (!this.isBgmEnabled || this.isMuted) return;
+      const audio = this.ensureBgmAudio();
+      if (audio && audio.paused) {
+        audio.volume = this.isDucked ? this.BGM_DUCKED_VOLUME : this.BGM_BASE_VOLUME;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              this.isBgmPlaying = true;
+              this.notifyBgmListeners();
+              removeGestureListeners();
+            })
+            .catch(() => {
+              // Keep listener if gesture did not unlock audio yet
+            });
+        }
+      } else if (audio && !audio.paused) {
+        removeGestureListeners();
+      }
+    };
+
+    const removeGestureListeners = () => {
+      if (!this.unlockListenersBound) return;
+      this.unlockListenersBound = false;
+      window.removeEventListener('pointerdown', handleUserGesture);
+      window.removeEventListener('touchstart', handleUserGesture);
+      window.removeEventListener('keydown', handleUserGesture);
+      window.removeEventListener('click', handleUserGesture);
+    };
+
+    window.addEventListener('pointerdown', handleUserGesture, { passive: true });
+    window.addEventListener('touchstart', handleUserGesture, { passive: true });
+    window.addEventListener('keydown', handleUserGesture, { passive: true });
+    window.addEventListener('click', handleUserGesture, { passive: true });
+  }
+
+  public initBGM() {
+    this.ensureBgmAudio();
+    this.bindAutoplayUnlockListeners();
+    if (this.isBgmEnabled && !this.isMuted) {
+      this.startBGM();
+    }
+  }
+
   public setMuted(muted: boolean) {
     this.isMuted = muted;
-    if (muted && this.isBgmPlaying) {
-      this.stopBGM();
+    if (muted) {
+      if (this.bgmAudio && !this.bgmAudio.paused) {
+        this.bgmAudio.pause();
+      }
+      this.isBgmPlaying = false;
+    } else if (this.isBgmEnabled) {
+      this.startBGM();
     }
+    this.notifyBgmListeners();
   }
 
   public getMuted(): boolean {
     return this.isMuted;
+  }
+
+  public toggleBGM(forceState?: boolean): boolean {
+    const target = forceState !== undefined ? forceState : !this.isBgmEnabled;
+    this.isBgmEnabled = target;
+    if (target) {
+      if (this.isMuted) {
+        this.isMuted = false;
+      }
+      this.startBGM();
+    } else {
+      this.stopBGM();
+    }
+    this.notifyBgmListeners();
+    return this.isBgmEnabled;
+  }
+
+  public getBgmPlaying(): boolean {
+    return this.isBgmEnabled && !this.isMuted;
+  }
+
+  public isBgmAudioElementPlaying(): boolean {
+    return Boolean(this.bgmAudio && !this.bgmAudio.paused);
+  }
+
+  public getBgmVolume(): number {
+    return this.bgmAudio ? Number(this.bgmAudio.volume.toFixed(3)) : this.BGM_BASE_VOLUME;
+  }
+
+  public getBgmCurrentTime(): number {
+    return this.bgmAudio ? this.bgmAudio.currentTime : 0;
+  }
+
+  public getBgmTrackUrl(): string {
+    return BGM_TRACK_URL;
+  }
+
+  private rampVolumeTo(targetVolume: number, durationMs: number) {
+    if (this.volumeFadeTimer !== null && typeof window !== 'undefined') {
+      window.clearInterval(this.volumeFadeTimer);
+      this.volumeFadeTimer = null;
+    }
+
+    const audio = this.bgmAudio;
+    if (!audio || typeof window === 'undefined') return;
+
+    const startVolume = audio.volume;
+    const diff = targetVolume - startVolume;
+    if (Math.abs(diff) < 0.005 || durationMs <= 0) {
+      audio.volume = Math.max(0, Math.min(1, targetVolume));
+      return;
+    }
+
+    const stepMs = 25;
+    const totalSteps = Math.max(1, Math.round(durationMs / stepMs));
+    let currentStep = 0;
+
+    this.volumeFadeTimer = window.setInterval(() => {
+      currentStep++;
+      const progress = Math.min(1, currentStep / totalSteps);
+      audio.volume = Math.max(0, Math.min(1, startVolume + diff * progress));
+      if (progress >= 1 && this.volumeFadeTimer !== null) {
+        window.clearInterval(this.volumeFadeTimer);
+        this.volumeFadeTimer = null;
+      }
+    }, stepMs);
+  }
+
+  public duckBGM(duck: boolean) {
+    this.isDucked = duck;
+    if (!this.bgmAudio) return;
+    if (duck) {
+      this.rampVolumeTo(this.BGM_DUCKED_VOLUME, 100);
+    } else {
+      this.rampVolumeTo(this.BGM_BASE_VOLUME, 350);
+    }
+  }
+
+  public startBGM() {
+    this.isBgmEnabled = true;
+    if (this.isMuted) return;
+
+    const audio = this.ensureBgmAudio();
+    if (!audio) return;
+
+    // Never restart or reset currentTime if already playing
+    if (!audio.paused) {
+      this.isBgmPlaying = true;
+      return;
+    }
+
+    audio.volume = this.isDucked ? this.BGM_DUCKED_VOLUME : this.BGM_BASE_VOLUME;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          this.isBgmPlaying = true;
+          this.notifyBgmListeners();
+        })
+        .catch(() => {
+          // Browser blocked autoplay until first user gesture; listener will unlock on first tap
+          this.isBgmPlaying = false;
+          this.bindAutoplayUnlockListeners();
+          this.notifyBgmListeners();
+        });
+    }
+  }
+
+  public stopBGM() {
+    this.isBgmPlaying = false;
+    if (this.volumeFadeTimer !== null && typeof window !== 'undefined') {
+      window.clearInterval(this.volumeFadeTimer);
+      this.volumeFadeTimer = null;
+    }
+    if (this.bgmAudio && !this.bgmAudio.paused) {
+      this.bgmAudio.pause();
+    }
+    this.notifyBgmListeners();
   }
 
   // 1. Tickle Giggle Reaction (Joyful bubbly laughter)
@@ -130,7 +365,6 @@ class SoundEngine {
     const ctx = this.initContext();
     const now = ctx.currentTime;
 
-    // Sweet glockenspiel sparkle (C6, E6, G6)
     const sparkleNotes = [1046.5, 1318.51, 1567.98];
     sparkleNotes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -182,7 +416,6 @@ class SoundEngine {
     const ctx = this.initContext();
     const now = ctx.currentTime;
 
-    // Soft two-tone gentle prompt
     [392.0, 329.63].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -271,9 +504,9 @@ class SoundEngine {
     const gain = ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(261.63, now); // C4
-    osc.frequency.exponentialRampToValueAtTime(329.63, now + 1.2); // E4
-    osc.frequency.exponentialRampToValueAtTime(261.63, now + 2.5); // C4
+    osc.frequency.setValueAtTime(261.63, now);
+    osc.frequency.exponentialRampToValueAtTime(329.63, now + 1.2);
+    osc.frequency.exponentialRampToValueAtTime(261.63, now + 2.5);
 
     gain.gain.setValueAtTime(0.001, now);
     gain.gain.linearRampToValueAtTime(0.12, now + 1.2);
@@ -312,77 +545,6 @@ class SoundEngine {
       osc.start(start);
       osc.stop(end);
     });
-  }
-
-  // 10. Background Music Lullaby
-  public toggleBGM(forceState?: boolean): boolean {
-    const target = forceState !== undefined ? forceState : !this.isBgmPlaying;
-    if (target) {
-      this.startBGM();
-    } else {
-      this.stopBGM();
-    }
-    return this.isBgmPlaying;
-  }
-
-  public getBgmPlaying(): boolean {
-    return this.isBgmPlaying;
-  }
-
-  private startBGM() {
-    if (this.isBgmPlaying || this.isMuted) return;
-    const ctx = this.initContext();
-    this.isBgmPlaying = true;
-
-    const melody = [
-      { f: 523.25, d: 0.3 },
-      { f: 659.25, d: 0.3 },
-      { f: 783.99, d: 0.3 },
-      { f: 659.25, d: 0.3 },
-      { f: 880.00, d: 0.4 },
-      { f: 783.99, d: 0.4 },
-      { f: 659.25, d: 0.4 },
-      { f: 587.33, d: 0.5 },
-      { f: 523.25, d: 0.4 },
-      { f: 659.25, d: 0.4 },
-      { f: 587.33, d: 0.4 },
-      { f: 523.25, d: 0.8 },
-    ];
-
-    let noteIdx = 0;
-    const playNextNote = () => {
-      if (!this.isBgmPlaying || this.isMuted) return;
-      const note = melody[noteIdx];
-      noteIdx = (noteIdx + 1) % melody.length;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      const now = ctx.currentTime;
-      osc.frequency.setValueAtTime(note.f, now);
-
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.035, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.5);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + note.d * 1.5);
-    };
-
-    playNextNote();
-    this.bgmInterval = window.setInterval(playNextNote, 600);
-  }
-
-  private stopBGM() {
-    this.isBgmPlaying = false;
-    if (this.bgmInterval) {
-      clearInterval(this.bgmInterval);
-      this.bgmInterval = null;
-    }
   }
 }
 

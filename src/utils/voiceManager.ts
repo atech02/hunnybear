@@ -1,4 +1,17 @@
 import type { MouthShape } from '../types/game';
+import { soundEngine } from './audio';
+
+const PRELOAD_WAV_FILES = [
+  '/audio/hunny_bear/hunny_hand_wave.wav',
+  '/audio/hunny_bear/hunny_feet_tap.wav',
+  '/audio/hunny_bear/hunny_cheeks_smile.wav',
+  '/audio/hunny_bear/hunny_eye_hurt.wav',
+  '/audio/hunny_bear/hunny_ears_careful.wav',
+  '/audio/hunny_bear/hunny_nose_weird.wav',
+  '/audio/hunny_bear/hunny_nose_boop.wav',
+  '/audio/hunny_bear/hunny_stomach_love.wav',
+  '/audio/hunny_bear/hunny_mouth_surprise.wav',
+];
 
 class VoiceManager {
   private synth: SpeechSynthesis | null = null;
@@ -7,14 +20,33 @@ class VoiceManager {
   private isSpeaking: boolean = false;
   private mouthInterval: number | null = null;
   private lastSpokenText: string = '';
+  private lastAudioFile: string | undefined = undefined;
   private onMouthChangeCallback: ((shape: MouthShape) => void) | null = null;
+  private activeAudio: HTMLAudioElement | null = null;
+  private audioCache: Map<string, HTMLAudioElement> = new Map();
 
   constructor() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      this.synth = window.speechSynthesis;
-      this.initVoices();
-      if (this.synth.onvoiceschanged !== undefined) {
-        this.synth.onvoiceschanged = () => this.initVoices();
+    if (typeof window !== 'undefined') {
+      if ('speechSynthesis' in window) {
+        this.synth = window.speechSynthesis;
+        this.initVoices();
+        if (this.synth.onvoiceschanged !== undefined) {
+          this.synth.onvoiceschanged = () => this.initVoices();
+        }
+      }
+      this.preloadAudioFiles();
+    }
+  }
+
+  private preloadAudioFiles() {
+    if (typeof Audio === 'undefined') return;
+    for (const fileUrl of PRELOAD_WAV_FILES) {
+      try {
+        const audio = new Audio(fileUrl);
+        audio.preload = 'auto';
+        this.audioCache.set(fileUrl, audio);
+      } catch {
+        // Ignore preload errors in non-browser environments
       }
     }
   }
@@ -24,7 +56,6 @@ class VoiceManager {
     const voices = this.synth.getVoices();
     if (!voices.length) return;
 
-    // Search for young, playful, boy-like or childlike English voices
     const preferredVoices = [
       'child',
       'kid',
@@ -76,78 +107,145 @@ class VoiceManager {
     return this.lastSpokenText;
   }
 
-  /**
-   * Calculate Little Boy voice acoustic parameters based on emotional tone:
-   * - Surprised / bouncy phrases: higher, playful intonation (pitch ~1.58)
-   * - Affectionate phrases ("I love you!"): warm, gentle, sweet pitch (~1.42)
-   * - Cheerful greetings: energetic boyish pitch (~1.48)
-   */
   private getBoyVoiceParams(text: string): { pitch: number; rate: number } {
     const lower = text.toLowerCase();
 
-    // Shocked / surprised phrase: "Huh? Weird!" or "Boop!"
-    if (lower.includes('weird') || lower.includes('boop') || lower.includes('surprise')) {
+    if (lower.includes('weird') || lower.includes('boop') || lower.includes('surprise') || lower.includes('mouth')) {
       return { pitch: 1.60, rate: 1.06 };
     }
 
-    // Affectionate phrase: "I love you!"
     if (lower.includes('love')) {
       return { pitch: 1.44, rate: 0.93 };
     }
 
-    // Giggly cheerful phrase: "You're funny!"
     if (lower.includes('funny')) {
       return { pitch: 1.55, rate: 1.04 };
     }
 
-    // Gentle boundary warning for sensitive eye touch: "That hurts!"
-    if (lower.includes('hurts')) {
+    if (lower.includes('hurts') || lower.includes('ouch')) {
       return { pitch: 1.46, rate: 0.95 };
     }
 
-    // Gentle gloomy/cautious warning for ear touch: "No, careful!"
     if (lower.includes('careful')) {
       return { pitch: 1.42, rate: 0.92 };
     }
 
-    // Playful greeting for foot tap: "Hey, you!"
     if (lower.includes('hey, you') || lower.includes('tap')) {
       return { pitch: 1.52, rate: 1.02 };
     }
 
-    // Default friendly boy voice for hand wave: "Hi, friend!"
     return { pitch: 1.50, rate: 1.0 };
   }
 
   public speak(
     text: string,
     onMouthShape?: (shape: MouthShape) => void,
-    onComplete?: () => void
+    onComplete?: () => void,
+    audioFile?: string
   ) {
     this.lastSpokenText = text;
+    this.lastAudioFile = audioFile;
     this.onMouthChangeCallback = onMouthShape || null;
 
-    if (this.isMuted || !this.synth) {
-      // Gracefully simulate brief mouth visemes if muted or speech API unavailable
+    // Cancel any ongoing audio/speech immediately to prevent overlapping recordings
+    this.stop();
+
+    if (this.isMuted) {
       this.simulateMouthMovement(text.length * 55, onMouthShape, onComplete);
       return;
     }
 
-    // Cancel any ongoing speech to prevent overlap
-    this.stop();
+    // Temporarily lower background music volume (ducking) so voice is easy to hear
+    soundEngine.duckBGM(true);
+
+    if (audioFile && typeof Audio !== 'undefined') {
+      this.playRecordedWav(audioFile, text, onMouthShape, onComplete);
+      return;
+    }
+
+    this.speakWithSynthesis(text, onMouthShape, onComplete);
+  }
+
+  private playRecordedWav(
+    audioFile: string,
+    fallbackText: string,
+    onMouthShape?: (shape: MouthShape) => void,
+    onComplete?: () => void
+  ) {
+    try {
+      let audio = this.audioCache.get(audioFile);
+      if (!audio) {
+        audio = new Audio(audioFile);
+        this.audioCache.set(audioFile, audio);
+      }
+
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+      this.activeAudio = audio;
+      this.isSpeaking = true;
+      this.startMouthSync();
+
+      let handled = false;
+      const finishCleanly = () => {
+        if (handled) return;
+        handled = true;
+        audio!.onended = null;
+        audio!.onerror = null;
+        if (this.activeAudio === audio) {
+          this.activeAudio = null;
+        }
+        this.cleanUpSpeech();
+        if (onComplete) onComplete();
+      };
+
+      const fallbackOnError = () => {
+        if (handled) return;
+        handled = true;
+        audio!.onended = null;
+        audio!.onerror = null;
+        if (this.activeAudio === audio) {
+          this.activeAudio = null;
+        }
+        this.cleanUpSpeech();
+        this.speakWithSynthesis(fallbackText, onMouthShape, onComplete);
+      };
+
+      audio.onended = finishCleanly;
+      audio.onerror = fallbackOnError;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          fallbackOnError();
+        });
+      }
+    } catch {
+      this.cleanUpSpeech();
+      this.speakWithSynthesis(fallbackText, onMouthShape, onComplete);
+    }
+  }
+
+  private speakWithSynthesis(
+    text: string,
+    onMouthShape?: (shape: MouthShape) => void,
+    onComplete?: () => void
+  ) {
+    if (this.isMuted || !this.synth) {
+      this.simulateMouthMovement(text.length * 55, onMouthShape, onComplete);
+      return;
+    }
 
     const utterance = new SpeechSynthesisUtterance(text);
     if (this.selectedVoice) {
       utterance.voice = this.selectedVoice;
     }
 
-    // Apply sweet, playful little boy voice acoustic profile
     const { pitch, rate } = this.getBoyVoiceParams(text);
     utterance.pitch = pitch;
     utterance.rate = rate;
     utterance.volume = 1.0;
 
-    // Synchronize mouth animation during speech
     utterance.onstart = () => {
       this.isSpeaking = true;
       this.startMouthSync();
@@ -219,9 +317,21 @@ class VoiceManager {
     if (this.onMouthChangeCallback) {
       this.onMouthChangeCallback('closed');
     }
+    soundEngine.duckBGM(false);
   }
 
   public stop() {
+    if (this.activeAudio) {
+      try {
+        this.activeAudio.onended = null;
+        this.activeAudio.onerror = null;
+        this.activeAudio.pause();
+        this.activeAudio.currentTime = 0;
+      } catch {
+        // Ignore pause errors
+      }
+      this.activeAudio = null;
+    }
     if (this.synth) {
       this.synth.cancel();
     }
@@ -230,9 +340,10 @@ class VoiceManager {
 
   public repeat(onMouthShape?: (shape: MouthShape) => void, onComplete?: () => void) {
     if (this.lastSpokenText) {
-      this.speak(this.lastSpokenText, onMouthShape, onComplete);
+      this.speak(this.lastSpokenText, onMouthShape, onComplete, this.lastAudioFile);
     }
   }
 }
 
 export const voiceManager = new VoiceManager();
+

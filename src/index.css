@@ -700,5 +700,404 @@
   transform-origin: 50% 86%;
 }
 
+/* =========================================================================
+   Six-Image Reference Pose Animations (Smooth, Coordinated, Non-Distorting)
+   ========================================================================= */
 
+.hunny-pose-layer {
+  will-change: opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.hunny-pose-active {
+  opacity: 1;
+  z-index: 10;
+  transition: opacity 95ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hunny-pose-inactive {
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 75ms ease-in;
+}
+
+/* 1. Idle: Very subtle breathing & floating without distorting proportions */
+@keyframes pose-idle-breathe-kf {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -2.5px, 0) scale(1.007);
+  }
+}
+
+.animate-pose-idle {
+  animation: pose-idle-breathe-kf 4.2s ease-in-out infinite;
+  transform-origin: 50% 88%;
+}
+
+/* 2. Hands (Wave): Directional left/right greeting sway + gentle bounce */
+@keyframes pose-wave-left-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  18% {
+    transform: translate3d(-3px, -5px, 0) rotate(-2.8deg) scale(1.012);
+  }
+  42% {
+    transform: translate3d(1.5px, -3px, 0) rotate(1.4deg) scale(1.008);
+  }
+  66% {
+    transform: translate3d(-2.5px, -4.5px, 0) rotate(-2.2deg) scale(1.01);
+  }
+  86% {
+    transform: translate3d(1px, -2px, 0) rotate(0.8deg) scale(1.004);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes pose-wave-right-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  18% {
+    transform: translate3d(3px, -5px, 0) rotate(2.8deg) scale(1.012);
+  }
+  42% {
+    transform: translate3d(-1.5px, -3px, 0) rotate(-1.4deg) scale(1.008);
+  }
+  66% {
+    transform: translate3d(2.5px, -4.5px, 0) rotate(2.2deg) scale(1.01);
+  }
+  86% {
+    transform: translate3d(-1px, -2px, 0) rotate(-0.8deg) scale(1.004);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+.animate-pose-wave,
+.animate-pose-wave-left {
+  animation: pose-wave-left-kf 1.45s cubic-bezier(0.37, 0, 0.63, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+.animate-pose-wave-right {
+  animation: pose-wave-right-kf 1.45s cubic-bezier(0.37, 0, 0.63, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+/* 3. Feet (Tap): 3 controlled tap cycles with vertical bounce & directional left/right weight shift */
+@keyframes pose-tap-feet-left-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  /* Tap 1 lift (0..260ms): subtle left-side shift & tilt */
+  10% {
+    transform: translate3d(-2.5px, -4.5px, 0) rotate(-1.5deg);
+  }
+  /* Tap 1 step-down (260..500ms) */
+  24% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  /* Tap 2 lift (500..760ms) */
+  40% {
+    transform: translate3d(-2.5px, -4.5px, 0) rotate(-1.5deg);
+  }
+  /* Tap 2 step-down (760..1000ms) */
+  56% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  /* Tap 3 lift (1000..1280ms) */
+  72% {
+    transform: translate3d(-2px, -3.5px, 0) rotate(-1.2deg);
+  }
+  /* Tap 3 step-down & smooth settle (1280..1560ms) */
+  88%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes pose-tap-feet-right-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  /* Tap 1 lift (0..260ms): subtle right-side shift & tilt */
+  10% {
+    transform: translate3d(2.5px, -4.5px, 0) rotate(1.5deg);
+  }
+  /* Tap 1 step-down (260..500ms) */
+  24% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  /* Tap 2 lift (500..760ms) */
+  40% {
+    transform: translate3d(2.5px, -4.5px, 0) rotate(1.5deg);
+  }
+  /* Tap 2 step-down (760..1000ms) */
+  56% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  /* Tap 3 lift (1000..1280ms) */
+  72% {
+    transform: translate3d(2px, -3.5px, 0) rotate(1.2deg);
+  }
+  /* Tap 3 step-down & smooth settle (1280..1560ms) */
+  88%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+.animate-pose-tap-feet,
+.animate-pose-tap-feet-left {
+  animation: pose-tap-feet-left-kf 1.56s ease-in-out forwards;
+  transform-origin: 50% 90%;
+}
+
+.animate-pose-tap-feet-right {
+  animation: pose-tap-feet-right-kf 1.56s ease-in-out forwards;
+  transform-origin: 50% 90%;
+}
+
+/* 4. Cheeks: Subtle joyful bounce and gentle lean toward touched cheek */
+@keyframes pose-cheek-left-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  28% {
+    transform: translate3d(-2px, -4.5px, 0) rotate(-1.8deg) scale(1.014);
+  }
+  62% {
+    transform: translate3d(-1px, -2px, 0) rotate(-1.0deg) scale(1.008);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes pose-cheek-right-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  28% {
+    transform: translate3d(2px, -4.5px, 0) rotate(1.8deg) scale(1.014);
+  }
+  62% {
+    transform: translate3d(1px, -2px, 0) rotate(1.0deg) scale(1.008);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+.animate-pose-cheek-left {
+  animation: pose-cheek-left-kf 1.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+.animate-pose-cheek-right {
+  animation: pose-cheek-right-kf 1.25s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+/* 5. Stomach: Warm, gentle belly bounce and affectionate side-to-side sway */
+@keyframes pose-stomach-love-kf {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  20% {
+    transform: translate3d(0, -6px, 0) scale(1.022, 0.99) rotate(-1.8deg);
+  }
+  45% {
+    transform: translate3d(0, -2.5px, 0) scale(0.995, 1.015) rotate(1.8deg);
+  }
+  70% {
+    transform: translate3d(0, -5px, 0) scale(1.016, 0.995) rotate(-1.2deg);
+  }
+  88% {
+    transform: translate3d(0, -1.5px, 0) scale(1.005) rotate(0.6deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+.animate-pose-happy,
+.animate-pose-stomach-love {
+  animation: pose-stomach-love-kf 1.45s ease-in-out forwards;
+  transform-origin: 50% 88%;
+}
+
+/* 6. Eyes: Single-eye blink flinch transitioning into gentle directional shocked recoil */
+@keyframes pose-eye-recoil-left-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  18% {
+    transform: translate3d(1.5px, 2px, 0) rotate(1.2deg) scale(0.988);
+  }
+  42% {
+    transform: translate3d(1px, -5px, 0) rotate(0.8deg) scale(1.012);
+  }
+  72% {
+    transform: translate3d(0.5px, -2px, 0) rotate(0.3deg) scale(1.004);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes pose-eye-recoil-right-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  18% {
+    transform: translate3d(-1.5px, 2px, 0) rotate(-1.2deg) scale(0.988);
+  }
+  42% {
+    transform: translate3d(-1px, -5px, 0) rotate(-0.8deg) scale(1.012);
+  }
+  72% {
+    transform: translate3d(-0.5px, -2px, 0) rotate(-0.3deg) scale(1.004);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+.animate-pose-eye-recoil,
+.animate-pose-eye-recoil-left {
+  animation: pose-eye-recoil-left-kf 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+.animate-pose-eye-recoil-right {
+  animation: pose-eye-recoil-right-kf 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+/* 7. Ears: Cautious head tilt away + gentle downward movement */
+@keyframes pose-ear-left-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  28% {
+    transform: translate3d(3px, 4.5px, 0) rotate(2.4deg) scale(0.99);
+  }
+  65% {
+    transform: translate3d(2px, 3px, 0) rotate(1.5deg) scale(0.994);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes pose-ear-right-kf {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  28% {
+    transform: translate3d(-3px, 4.5px, 0) rotate(-2.4deg) scale(0.99);
+  }
+  65% {
+    transform: translate3d(-2px, 3px, 0) rotate(-1.5deg) scale(0.994);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+.animate-pose-closed-eyes,
+.animate-pose-ear-left {
+  animation: pose-ear-left-kf 1.35s ease-out forwards;
+  transform-origin: 50% 90%;
+}
+
+.animate-pose-ear-right {
+  animation: pose-ear-right-kf 1.35s ease-out forwards;
+  transform-origin: 50% 90%;
+}
+
+/* 8. Mouth & Nose: Small surprised recoil */
+@keyframes pose-mouth-shock-kf {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  24% {
+    transform: translate3d(0, -5.5px, 0) scale(1.015);
+  }
+  60% {
+    transform: translate3d(0, -2px, 0) scale(1.005);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes pose-nose-boop-kf {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  20% {
+    transform: translate3d(0, 2px, 0) scale(0.986);
+  }
+  48% {
+    transform: translate3d(0, -4.5px, 0) scale(1.014);
+  }
+  76% {
+    transform: translate3d(0, -1.5px, 0) scale(1.004);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.animate-pose-shocked,
+.animate-pose-mouth-shock {
+  animation: pose-mouth-shock-kf 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+.animate-pose-nose-boop {
+  animation: pose-nose-boop-kf 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: 50% 90%;
+}
+
+/* Respect prefers-reduced-motion user accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pose-idle,
+  .animate-pose-wave,
+  .animate-pose-wave-left,
+  .animate-pose-wave-right,
+  .animate-pose-tap-feet,
+  .animate-pose-tap-feet-left,
+  .animate-pose-tap-feet-right,
+  .animate-pose-cheek-left,
+  .animate-pose-cheek-right,
+  .animate-pose-happy,
+  .animate-pose-stomach-love,
+  .animate-pose-eye-recoil,
+  .animate-pose-eye-recoil-left,
+  .animate-pose-eye-recoil-right,
+  .animate-pose-closed-eyes,
+  .animate-pose-ear-left,
+  .animate-pose-ear-right,
+  .animate-pose-shocked,
+  .animate-pose-mouth-shock,
+  .animate-pose-nose-boop,
+  .animate-bear-speaking,
+  .animate-bear-head-tilt {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .hunny-pose-active,
+  .hunny-pose-inactive {
+    transition-duration: 40ms !important;
+  }
+}
 
